@@ -258,9 +258,8 @@ tbody td:first-child{color:var(--t1);white-space:nowrap;}
         <div id="map"></div>
         <div id="geocode-status" style="display:none;font-size:11px;color:var(--t3);padding:6px 2px;"></div>
         <div class="map-legend">
-          <div class="leg-item"><div class="leg-dot" style="background:var(--green)"></div>Executado (Formulário)</div>
+          <div class="leg-item"><div class="leg-dot" style="background:var(--green)"></div>Executado</div>
           <div class="leg-item"><div class="leg-dot" style="background:var(--amber)"></div>Em andamento</div>
-          <div class="leg-item"><div class="leg-dot" style="background:#3b82f6"></div>Planilha Abril/26</div>
         </div>
       </div>
 
@@ -269,7 +268,7 @@ tbody td:first-child{color:var(--t1);white-space:nowrap;}
         <div class="table-filters">
           <input type="text" class="search-box" id="q-search" placeholder="Buscar por endereço, tipo ou observação…">
           <select class="search-box" id="q-status" style="flex:none;width:160px;"><option value="">Todos os status</option><option value="Executado">Executado</option><option value="Em andamento">Em andamento</option></select>
-          <select class="search-box" id="q-source" style="flex:none;width:150px;"><option value="">Todas as fontes</option><option value="formulario">Formulário</option><option value="planilha">Planilha Abril</option></select>
+          <select class="search-box" id="q-source" style="flex:none;width:150px;"><option value="">Todas as fontes</option><option value="formulario">Formulário</option><option value="planilha">Planilha</option></select>
         </div>
         <div class="tbl-wrap"><table><thead><tr><th>Data</th><th>Endereço</th><th>Tipo de Serviço</th><th>Status</th><th>Origem</th><th>Observações</th></tr></thead><tbody id="t-body"></tbody></table></div>
         <div class="pagination"><button class="pg-btn" id="pg-prev">← Anterior</button><div class="pg-info" id="pg-info">-</div><button class="pg-btn" id="pg-next">Próximo →</button></div>
