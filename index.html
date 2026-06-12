@@ -472,7 +472,7 @@ function isoWeek(d){
 }
 
 // ═══════════ CSV UTILS ═══════════
-function parseCSV(text){
+function parseCSVRaw(text){
   const rows=[];
   for(const line of text.trim().split('\n')){
     const row=[];let cur='',inQ=false;
@@ -483,14 +483,19 @@ function parseCSV(text){
       else{cur+=ch;}
     }
     row.push(cur);
-    rows.push(row.map(c=>c.trim()));
+    rows.push(row);
   }
   return rows;
 }
+function parseCSV(text){
+  return parseCSVRaw(text).map(row=>row.map(c=>c.trim()));
+}
 function csvToObjects(text){
-  const rows=parseCSV(text);if(rows.length<2)return[];
-  const headers=rows[0];
-  return rows.slice(1).map(r=>{const o={};headers.forEach((h,i)=>{o[h]=r[i]??'';});return o;});
+  const raw=parseCSVRaw(text);if(raw.length<2)return[];
+  const headers=raw[0]; // preserva espaços dos nomes do Google Forms
+  return raw.slice(1).map(r=>{
+    const o={};headers.forEach((h,i)=>{o[h]=(r[i]??'').trim();});return o;
+  });
 }
 async function fetchSheet(name){
   const url=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(name)}`;
