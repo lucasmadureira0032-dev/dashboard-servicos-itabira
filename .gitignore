@@ -1,0 +1,12 @@
+# Arquivos de dados locais — não subir pro repositório
+uploads/
+screenshots/
+.thumbnail
+.thumbnail/
+
+# Scripts temporários do Apps Script
+*.gs
+
+# Arquivos do sistema
+.DS_Store
+Thumbs.db

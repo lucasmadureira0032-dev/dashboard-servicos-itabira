@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+<pre id="out">Carregando...</pre>
+<script>
+async function main() {
+  const resp = await fetch('uploads/data_source-1781111352351.xlsx');
+  const ab = await resp.arrayBuffer();
+  const wb = XLSX.read(ab, { type: 'array', cellDates: true });
+  
+  const result = {};
+  
+  wb.SheetNames.forEach(name => {
+    const ws = wb.Sheets[name];
+    const json = XLSX.utils.sheet_to_json(ws, { header: 1, raw: false });
+    result[name] = json.slice(0, 10); // first 10 rows
+  });
+  
+  document.getElementById('out').textContent = JSON.stringify(result, null, 2);
+  window.__xlData = result;
+  window.__wb = wb;
+  
+  // Also get full data for sheet1
+  const ws1 = wb.Sheets[wb.SheetNames[0]];
+  const full = XLSX.utils.sheet_to_json(ws1, { raw: false });
+  window.__fullData = full;
+  document.getElementById('out').textContent = 
+    'Sheets: ' + wb.SheetNames.join(', ') + '\n\n' +
+    'Sheet1 sample (10 rows):\n' + JSON.stringify(result[wb.SheetNames[0]], null, 2) +
+    '\n\nTotal rows sheet1: ' + full.length;
+}
+main().catch(e => document.getElementById('out').textContent = 'Error: ' + e);
+</script>
+</body>
+</html>
