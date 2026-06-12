@@ -504,27 +504,25 @@ async function loadData(){
   if(!SHEET_ID||SHEET_ID==='SEU_ID_AQUI')
     throw new Error('Configure o SHEET_ID no início do código. Abra a planilha Google Sheets, copie o ID da URL e cole no lugar de "SEU_ID_AQUI".');
 
-  const [csv1,csv3,csv2]=await Promise.all([
-    fetchSheet('SERVIÇOS REALIZADOS'),
+  const [csvResp,csvMat]=await Promise.all([
     fetchSheet('RESPOSTAS'),
     fetchSheet('MATERIAIS GASTOS')
   ]);
 
   const services=[];
 
-  // SERVIÇOS REALIZADOS: A=coords, B=coords MyMaps, C=data, D=endereço, E=status, F=observações
-  parseCSV(csv1).slice(1).forEach(r=>{
-    const d=parseDMY(r[2]);if(!d)return;
-    services.push({date:d,coords:parseCoords(r[1]||r[0]),endereco:r[3]||'',status:'Executado',tipo:'Serviço de campo',obs:r[5]||'',source:'planilha'});
-  });
-
-  // RESPOSTAS: datas no formato DD/MM/AAAA (4 dígitos)
-  csvToObjects(csv3).forEach(r=>{
+  // RESPOSTAS: única fonte de serviços
+  // Entradas sem carimbo = vieram da planilha antiga; com carimbo = formulário
+  // Quando não há coordenadas, o geocodeServices() usa o endereço automaticamente
+  csvToObjects(csvResp).forEach(r=>{
     const d=parseDMY(r['1. Data do serviço ']);if(!d)return;
-    services.push({date:d,coords:parseCoords(r['5. Coordenadas geográficas  ']||r['Column 11']),endereco:r['4. Endereço aproximado ']||r['Endereço Aproximado']||'',status:'Executado',tipo:r['2. Tipo de serviço ']||'',obs:r['8. Observações  ']||'',source:'formulario'});
+    const coords=parseCoords(r['5. Coordenadas geográficas  ']||r['Column 11']);
+    const endereco=r['4. Endereço aproximado ']||r['Endereço Aproximado']||'';
+    const source=r['Carimbo de data/hora']?'formulario':'planilha';
+    services.push({date:d,coords,endereco,status:'Executado',tipo:r['2. Tipo de serviço ']||'Serviço de campo',obs:r['8. Observações  ']||'',source});
   });
 
-  const matRows=csvToObjects(csv2);
+  const matRows=csvToObjects(csvMat);
   const materials=matRows.map(r=>({date:parseDMY(r['Data']),material:normMat(r['Material']||''),qtd:parseQtd(r['Quantidade']),un:r['Unidade']||'',tipo:r['Tipo de serviço']||''})).filter(r=>r.material&&r.date);
   const matFull=matRows.map(r=>({date:parseDMY(r['Data']),local:r['Local']||'',tipo:r['Tipo de serviço']||'',material:normMat(r['Material']||''),rawMat:r['Material']||'',qtd:parseQtd(r['Quantidade']),rawQtd:r['Quantidade']||'',un:r['Unidade']||'',obs:r['Observação']||'',colab:parseInt(r['Colaboradores envolvidos'])||0})).filter(r=>r.date);
 
