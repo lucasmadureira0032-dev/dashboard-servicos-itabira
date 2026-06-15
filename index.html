@@ -68,18 +68,19 @@ main{padding:24px 28px;max-width:1600px;margin:0 auto;display:flex;flex-directio
 .kpi-icon{position:absolute;right:18px;top:50%;transform:translateY(-50%);font-size:36px;opacity:.07;}
 
 /* CUSTO BANNER */
-.custo-banner{background:linear-gradient(135deg,#1a3a0a 0%,#0e2a05 100%);border:1px solid #2d6e12;border-radius:12px;padding:18px 24px;display:flex;align-items:center;gap:20px;flex-wrap:wrap;}
+.custo-banner{background:var(--s1);border:1px solid var(--border);border-radius:12px;padding:18px 24px;display:flex;align-items:center;gap:20px;flex-wrap:wrap;position:relative;overflow:hidden;}
+.custo-banner::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--accent);}
 .custo-main{display:flex;flex-direction:column;gap:4px;}
-.custo-label{font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:#6bbf3a;}
-.custo-val{font-size:36px;font-weight:700;color:#86efac;line-height:1;}
-.custo-note{font-size:11px;color:#4a8a22;}
+.custo-label{font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:var(--t3);}
+.custo-val{font-size:36px;font-weight:700;color:var(--accent);line-height:1;}
+.custo-note{font-size:11px;color:var(--t3);}
 .custo-breakdown{flex:1;min-width:300px;}
 .custo-table{width:100%;border-collapse:collapse;font-size:11px;}
-.custo-table th{padding:4px 10px;text-align:left;color:#4a8a22;font-size:10px;text-transform:uppercase;letter-spacing:.5px;}
-.custo-table td{padding:4px 10px;color:#86efac;border-top:1px solid rgba(45,110,18,.3);}
-.custo-table td:last-child{text-align:right;font-weight:600;}
-.custo-config-btn{font-size:11px;background:rgba(107,191,58,.1);border:1px solid rgba(107,191,58,.3);color:#6bbf3a;border-radius:6px;padding:4px 10px;cursor:pointer;font-family:inherit;margin-top:6px;transition:all .15s;}
-.custo-config-btn:hover{background:rgba(107,191,58,.2);}
+.custo-table th{padding:4px 10px;text-align:left;color:var(--t3);font-size:10px;text-transform:uppercase;letter-spacing:.5px;}
+.custo-table td{padding:4px 10px;color:var(--t2);border-top:1px solid var(--border);}
+.custo-table td:last-child{text-align:right;font-weight:600;color:var(--accent);}
+.custo-config-btn{font-size:11px;background:rgba(245,168,0,.1);border:1px solid rgba(245,168,0,.3);color:var(--accent);border-radius:6px;padding:4px 10px;cursor:pointer;font-family:inherit;margin-top:6px;transition:all .15s;}
+.custo-config-btn:hover{background:rgba(245,168,0,.2);}
 
 /* PRICE EDITOR */
 .price-editor{background:var(--s1);border:1px solid var(--border);border-radius:12px;padding:20px;display:none;}
@@ -151,14 +152,8 @@ tbody td:first-child{color:var(--t1);white-space:nowrap;}
 [data-theme="light"] .pill{border-color:#b8cfe0;color:#2d4d70;}
 [data-theme="light"] .pill:hover{border-color:var(--yellow);color:#0d1e38;}
 [data-theme="light"] .price-input{background:#f3f7fc;border-color:var(--border);}
-[data-theme="light"] .custo-banner{background:linear-gradient(135deg,#f0faf4 0%,#e6f5ec 100%);border-color:#a8d5b5;}
-[data-theme="light"] .custo-label{color:#276b3a;}
-[data-theme="light"] .custo-val{color:#1a5c30;}
-[data-theme="light"] .custo-note{color:#4a9a60;}
-[data-theme="light"] .custo-table th{color:#4a9a60;}
-[data-theme="light"] .custo-table td{color:#1a5c30;border-top-color:rgba(40,130,70,.15);}
-[data-theme="light"] .custo-config-btn{background:rgba(39,107,58,.08);border-color:rgba(39,107,58,.25);color:#276b3a;}
-[data-theme="light"] .custo-config-btn:hover{background:rgba(39,107,58,.18);}
+[data-theme="light"] .custo-banner{background:#fff;border-color:var(--border);}
+[data-theme="light"] .custo-val{color:var(--accent);}
 [data-theme="light"] .alerta-item{background:rgba(248,113,113,.04);border-color:rgba(248,113,113,.25);}
 [data-theme="light"] .alerta-ok{background:rgba(52,211,153,.06);border-color:rgba(52,211,153,.3);}
 
@@ -232,7 +227,7 @@ tbody td:first-child{color:var(--t1);white-space:nowrap;}
 
       <div class="row2">
         <div class="panel" style="height:260px;"><div class="panel-head"><span class="panel-title">Produtividade Semanal</span><span class="panel-sub">serviços por semana</span></div><div class="chart-wrap"><canvas id="c-weekly"></canvas></div></div>
-        <div class="panel" style="height:260px;"><div class="panel-head"><span class="panel-title">Status</span></div><div class="chart-wrap"><canvas id="c-status"></canvas></div></div>
+        <div class="panel" style="height:260px;"><div class="panel-head"><span class="panel-title">Serviços por Mês</span><span class="panel-sub">últimos 6 meses</span></div><div class="chart-wrap"><canvas id="c-status"></canvas></div></div>
       </div>
 
       <div class="panel" style="height:300px;">
@@ -360,7 +355,7 @@ let period='all',svcDateFrom=null,svcDateTo=null;
 let matPeriod='all',matDateFrom=null,matDateTo=null;
 let mapMode='markers',page=1,mPage=1;
 const PER=15;
-let cDaily=null,cTypes=null,cStatus=null,cWeekly=null,cRank=null;
+let cDaily=null,cTypes=null,cMonthly=null,cWeekly=null,cRank=null;
 let mcTop=null,mcTipos=null,mcColab=null,mcDaily=null,mcComp=null;
 let lMap=null,markersLg=null,heatLg=null,tileLayer=null;
 let matInited=false;
@@ -396,7 +391,7 @@ function setTheme(dark,redraw){
     tileLayer=L.tileLayer(dark?'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png':'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{attribution:'© OSM © CARTO',subdomains:'abcd',maxZoom:19}).addTo(lMap);
   }
   if(redraw){
-    [cDaily,cTypes,cStatus,cWeekly,cRank,mcTop,mcTipos,mcColab,mcDaily,mcComp].filter(Boolean).forEach(c=>{
+    [cDaily,cTypes,cMonthly,cWeekly,cRank,mcTop,mcTipos,mcColab,mcDaily,mcComp].filter(Boolean).forEach(c=>{
       if(c.config.options.scales) Object.values(c.config.options.scales).forEach(s=>{if(s.grid)s.grid.color=GRID;if(s.ticks)s.ticks.color=Chart.defaults.color;});
       const leg=c.config.options.plugins?.legend?.labels;
       if(leg)leg.color=Chart.defaults.color;
@@ -619,11 +614,14 @@ function mkWeekly(svc){
   if(cWeekly)cWeekly.destroy();
   cWeekly=new Chart(document.getElementById('c-weekly'),{type:'line',data:{labels:sorted.map(([k])=>k),datasets:[{data:sorted.map(([,v])=>v),borderColor:'#F5A800',backgroundColor:'rgba(245,168,0,.12)',fill:true,tension:0.4,pointRadius:5,pointBackgroundColor:'#F5A800',pointBorderColor:'#0e1f3a',pointBorderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.raw} serviço(s) na semana`}}},scales:{x:{grid:{color:GRID},ticks:{font:{size:10}}},y:{grid:{color:GRID},beginAtZero:true,ticks:{precision:0}}}}});
 }
-function mkStatus(svc){
-  const done=svc.filter(s=>s.status==='Executado').length,wip=svc.filter(s=>s.status==='Em andamento').length,other=svc.length-done-wip;
-  const d=[[done,'Executado','#34d399'],[wip,'Em andamento','#fbbf24'],[other,'Outros','#7ea4c8']].filter(x=>x[0]>0);
-  if(cStatus)cStatus.destroy();
-  cStatus=new Chart(document.getElementById('c-status'),{type:'doughnut',data:{labels:d.map(x=>x[1]),datasets:[{data:d.map(x=>x[0]),backgroundColor:d.map(x=>x[2]+'cc'),borderColor:d.map(x=>x[2]),borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,cutout:'68%',plugins:{legend:{position:'bottom',labels:{padding:14,boxWidth:10,font:{size:11}}},tooltip:{callbacks:{label:c=>{const t=d.reduce((a,x)=>a+x[0],0);return` ${c.label}: ${c.raw} (${Math.round(c.raw/t*100)}%)`;}}}}}}); 
+function mkMonthly(svc){
+  const now=new Date();
+  const months=[];
+  for(let i=5;i>=0;i--){const d=new Date(now.getFullYear(),now.getMonth()-i,1);months.push({m:d.getMonth(),y:d.getFullYear(),label:d.toLocaleDateString('pt-BR',{month:'short',year:'2-digit'}).replace('. ','/')});}
+  const cnt={};months.forEach(({label})=>{cnt[label]=0;});
+  svc.forEach(s=>{const mo=months.find(x=>s.date.getMonth()===x.m&&s.date.getFullYear()===x.y);if(mo)cnt[mo.label]++;});
+  if(cMonthly)cMonthly.destroy();
+  cMonthly=new Chart(document.getElementById('c-status'),{type:'bar',data:{labels:months.map(m=>m.label),datasets:[{data:months.map(m=>cnt[m.label]),backgroundColor:'rgba(99,179,237,.75)',borderColor:'#63B3ED',borderWidth:1,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.raw} serviço(s)`}}},scales:{x:{grid:{color:GRID},ticks:{font:{size:10}}},y:{grid:{color:GRID},beginAtZero:true,ticks:{precision:0}}}}});
 }
 function mkRanking(svc){
   const cnt={};
@@ -801,7 +799,7 @@ function renderMatTable(mats){
 // ═══════════ UPDATE ═══════════
 function update(){
   filtered=applyPeriodSvc(DATA.services);
-  updateKPIs(filtered);mkDaily(filtered);mkTypes(filtered);mkWeekly(filtered);mkStatus(filtered);mkRanking(filtered);
+  updateKPIs(filtered);mkDaily(filtered);mkTypes(filtered);mkWeekly(filtered);mkMonthly(filtered);mkRanking(filtered);
   renderMap(filtered);page=1;renderTable(filtered);
 }
 function updateMat(){
@@ -875,7 +873,7 @@ async function refreshDashboard(isManual=false){
   try{
     DATA=await loadData();
     filtered=applyPeriodSvc(DATA.services);
-    updateKPIs(filtered);mkDaily(filtered);mkTypes(filtered);mkWeekly(filtered);mkStatus(filtered);mkRanking(filtered);
+    updateKPIs(filtered);mkDaily(filtered);mkTypes(filtered);mkWeekly(filtered);mkMonthly(filtered);mkRanking(filtered);
     renderMap(filtered);page=1;renderTable(filtered);
     geocodeServices(DATA.services);
     if(matInited){
@@ -901,7 +899,7 @@ async function init(){
     document.getElementById('loading').style.display='none';
     document.getElementById('app').style.display='block';
     filtered=DATA.services;
-    updateKPIs(filtered);mkDaily(filtered);mkTypes(filtered);mkWeekly(filtered);mkStatus(filtered);mkRanking(filtered);
+    updateKPIs(filtered);mkDaily(filtered);mkTypes(filtered);mkWeekly(filtered);mkMonthly(filtered);mkRanking(filtered);
     page=1;renderTable(filtered);
     setTheme(isDark,false);
     updatePeriodPillLabels();
