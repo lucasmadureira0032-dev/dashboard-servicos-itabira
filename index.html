@@ -341,11 +341,6 @@ tbody td:first-child{color:var(--t1);white-space:nowrap;}
         <div class="chart-wrap"><canvas id="mc-comp"></canvas></div>
       </div>
 
-      <!-- Alertas -->
-      <div class="alerta-panel">
-        <div class="panel-head"><span class="panel-title">⚠️ Serviços sem Material Registrado</span><span class="panel-sub" id="alerta-count">-</span></div>
-        <div class="alerta-list" id="alertas-list"></div>
-      </div>
 
       <div class="table-panel">
         <div class="panel-head" style="margin-bottom:14px;"><span class="panel-title">Registro de Materiais Gastos</span></div>
@@ -598,7 +593,7 @@ function updateKPIs(svc){
   const tot=svc.length,done=svc.filter(s=>s.status==='Executado').length;
   const pct=tot?Math.round(done/tot*100):0;
   const now=new Date(),wk=new Date(now);wk.setDate(now.getDate()-7);
-  const weekCount=DATA.services.filter(s=>s.date>=wk).length;
+  const weekCount=svc.filter(s=>s.date>=wk).length;
   const uniqAddr=new Set(svc.map(s=>extractStreet(s.endereco)).filter(Boolean)).size;
   document.getElementById('k-total').textContent=tot;
   document.getElementById('k-done').textContent=done;
@@ -776,17 +771,6 @@ function mkComparativo(){
   if(mcComp)mcComp.destroy();
   mcComp=new Chart(document.getElementById('mc-comp'),{type:'bar',data:{labels,datasets:[{label:'Serviços executados',data:labels.map(l=>svcByMonth[l]),backgroundColor:'rgba(245,168,0,.75)',borderColor:'#F5A800',borderWidth:1,borderRadius:4},{label:'Lançamentos de materiais',data:labels.map(l=>matByMonth[l]),backgroundColor:'rgba(99,179,237,.75)',borderColor:'#63B3ED',borderWidth:1,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{padding:14,boxWidth:10,font:{size:11}}}},scales:{x:{grid:{color:GRID}},y:{grid:{color:GRID},beginAtZero:true,ticks:{precision:0}}}}});
 }
-function renderAlertas(){
-  const matDates=new Set(DATA.matFull.map(m=>fmtKey(m.date)).filter(Boolean));
-  const formServices=DATA.services.filter(s=>s.source==='formulario');
-  const byDate={};
-  formServices.forEach(s=>{const k=fmtKey(s.date);if(!matDates.has(k)){if(!byDate[k])byDate[k]={date:s.date,count:0,addrs:[]};byDate[k].count++;if(s.endereco&&!byDate[k].addrs.includes(s.endereco))byDate[k].addrs.push(s.endereco);}});
-  const alertas=Object.values(byDate).sort((a,b)=>b.date-a.date);
-  const el=document.getElementById('alertas-list');
-  document.getElementById('alerta-count').textContent=alertas.length?`${alertas.length} data(s) sem lançamento de material`:'Sem pendências';
-  if(!alertas.length){el.innerHTML='<div class="alerta-ok">✅ Ótimo! Todos os dias com serviço têm materiais registrados.</div>';return;}
-  el.innerHTML=alertas.map(a=>`<div class="alerta-item"><div class="alerta-date">📅 ${fmt(a.date)}</div><div class="alerta-info">${a.count} serviço(s) sem material · ${a.addrs.slice(0,2).join(', ')}${a.addrs.length>2?` +${a.addrs.length-2}`:''}</div></div>`).join('');
-}
 
 // ═══════════ PREÇOS - editor ═══════════
 function renderPriceEditor(){
@@ -843,7 +827,7 @@ function initMatPage(){
   if(matInited)return;matInited=true;
   filteredMat=applyMatPeriodFull();
   updateMKPIs(filteredMat);mkMatTop(filteredMat);mkMatTipos(filteredMat);mkMatColab(filteredMat);mkMatDaily(filteredMat);
-  mkComparativo();renderAlertas();calcCusto(filteredMat);renderPriceEditor();
+  mkComparativo();calcCusto(filteredMat);renderPriceEditor();
   mPage=1;renderMatTable(filteredMat);
   document.getElementById('mat-period-info').textContent=`Todos os registros · ${filteredMat.length} registros`;
   setTimeout(()=>{[mcTop,mcTipos,mcColab,mcDaily,mcComp].forEach(c=>{if(c)c.resize();});},80);
@@ -891,7 +875,7 @@ async function refreshDashboard(isManual=false){
     if(matInited){
       filteredMat=applyMatPeriodFull();
       updateMKPIs(filteredMat);mkMatTop(filteredMat);mkMatTipos(filteredMat);mkMatColab(filteredMat);mkMatDaily(filteredMat);
-      mkComparativo();renderAlertas();calcCusto(filteredMat);mPage=1;renderMatTable(filteredMat);
+      mkComparativo();calcCusto(filteredMat);mPage=1;renderMatTable(filteredMat);
     }
     setLastUpdated();
   }catch(e){console.error('Erro ao atualizar:',e);}
