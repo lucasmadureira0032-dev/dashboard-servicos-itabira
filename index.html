@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dashboard de Serviços - Prefeitura de Itabira MG</title>
+<title>ITAURB - Coordenadoria de Fiscalização e Infraestrutura Urbana | Itabira MG</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -91,13 +91,6 @@ main{padding:24px 28px;max-width:1600px;margin:0 auto;display:flex;flex-directio
 .price-input:focus{border-color:var(--accent);}
 .price-unit{font-size:10px;color:var(--t3);white-space:nowrap;}
 
-/* ALERTAS */
-.alerta-panel{background:var(--s1);border:1px solid var(--border);border-radius:12px;padding:20px;}
-.alerta-list{display:flex;flex-direction:column;gap:8px;margin-top:14px;max-height:220px;overflow-y:auto;}
-.alerta-item{display:flex;align-items:center;gap:14px;background:rgba(248,113,113,.05);border:1px solid rgba(248,113,113,.2);border-radius:8px;padding:10px 14px;}
-.alerta-date{font-size:13px;font-weight:600;color:#f87171;white-space:nowrap;}
-.alerta-info{font-size:12px;color:var(--t2);}
-.alerta-ok{display:flex;align-items:center;gap:8px;background:rgba(52,211,153,.05);border:1px solid rgba(52,211,153,.2);border-radius:8px;padding:12px 16px;color:var(--green);font-size:13px;}
 
 /* PANELS */
 .row2{display:grid;grid-template-columns:3fr 2fr;gap:16px;}
@@ -347,7 +340,7 @@ tbody td:first-child{color:var(--t1);white-space:nowrap;}
         <div class="table-filters">
           <input type="text" class="search-box" id="mq-search" placeholder="Buscar por local, tipo ou material…">
           <select class="search-box" id="mq-mat" style="flex:none;width:180px;"><option value="">Todos os materiais</option></select>
-          <select class="search-box" id="mq-colab" style="flex:none;width:160px;"><option value="">Todas as equipes</option><option value="3">3 colaboradores</option><option value="4">4 colaboradores</option><option value="5">5 colaboradores</option></select>
+          <select class="search-box" id="mq-colab" style="flex:none;width:160px;"><option value="">Todas as equipes</option></select>
         </div>
         <div class="tbl-wrap"><table><thead><tr><th>Data</th><th>Local</th><th>Tipo de Serviço</th><th>Material</th><th>Qtd</th><th>Un.</th><th>Equipe</th><th>Observação</th></tr></thead><tbody id="mt-body"></tbody></table></div>
         <div class="pagination"><button class="pg-btn" id="mpg-prev">← Anterior</button><div class="pg-info" id="mpg-info">-</div><button class="pg-btn" id="mpg-next">Próximo →</button></div>
@@ -834,6 +827,8 @@ function initMatPage(){
 
   const sel=document.getElementById('mq-mat');
   [...new Set(DATA.matFull.filter(m=>m.material).map(m=>m.material))].sort().forEach(m=>{const o=document.createElement('option');o.value=m;o.textContent=m;sel.appendChild(o);});
+  const selC=document.getElementById('mq-colab');
+  [...new Set(DATA.matFull.map(m=>m.colab).filter(c=>c>0))].sort((a,b)=>a-b).forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=`${c} colaboradores`;selC.appendChild(o);});
 
   document.querySelectorAll('.pill[data-mp]').forEach(btn=>{btn.addEventListener('click',()=>{document.querySelectorAll('.pill[data-mp]').forEach(b=>b.classList.remove('active'));btn.classList.add('active');matPeriod=btn.dataset.mp;matDateFrom=null;matDateTo=null;document.getElementById('m-from').value='';document.getElementById('m-to').value='';document.getElementById('m-clear').style.display='none';updateMat();});});
   document.getElementById('m-apply').addEventListener('click',()=>{const f=document.getElementById('m-from').value,t=document.getElementById('m-to').value;matDateFrom=f?parseISO(f):null;matDateTo=t?parseISO(t):null;if(matDateFrom||matDateTo){document.querySelectorAll('.pill[data-mp]').forEach(b=>b.classList.remove('active'));document.getElementById('m-clear').style.display='';}updateMat();});
