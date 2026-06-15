@@ -200,7 +200,6 @@ tbody td:first-child{color:var(--t1);white-space:nowrap;}
           <button class="pill" data-sp="week">Semana</button>
           <button class="pill" data-sp="month">Junho/26</button>
           <button class="pill" data-sp="prev">Maio/26</button>
-          <button class="pill" data-sp="april">Abril/26</button>
         </div>
         <div class="pb-sep"></div>
         <div class="pb-custom"><span class="pb-label">Personalizado:</span>
@@ -546,7 +545,6 @@ function applyPeriodSvc(svc){
   if(period==='week'){const wk=new Date(now);wk.setDate(now.getDate()-7);return svc.filter(s=>s.date>=wk);}
   if(period==='month')return svc.filter(s=>s.date.getMonth()===now.getMonth()&&s.date.getFullYear()===now.getFullYear());
   if(period==='prev'){const p=new Date(now.getFullYear(),now.getMonth()-1,1);return svc.filter(s=>s.date.getMonth()===p.getMonth()&&s.date.getFullYear()===p.getFullYear());}
-  if(period==='april'){const p=new Date(now.getFullYear(),now.getMonth()-2,1);return svc.filter(s=>s.date.getMonth()===p.getMonth()&&s.date.getFullYear()===p.getFullYear());}
   return svc;
 }
 function applySearch(svc){
@@ -588,7 +586,7 @@ function updateKPIs(svc){
   document.getElementById('k-week').textContent=weekCount;
   document.getElementById('k-addr').textContent=uniqAddr;
   const fmtM=d=>d.toLocaleDateString('pt-BR',{month:'long',year:'2-digit'}).replace(' de ','/');
-  const lbs={all:'Todos',week:'Últ. 7 dias',month:fmtM(now),prev:fmtM(new Date(now.getFullYear(),now.getMonth()-1,1)),april:fmtM(new Date(now.getFullYear(),now.getMonth()-2,1))};
+  const lbs={all:'Todos',week:'Últ. 7 dias',month:fmtM(now),prev:fmtM(new Date(now.getFullYear(),now.getMonth()-1,1))};
   const lbl=(svcDateFrom||svcDateTo)?`${svcDateFrom?fmt(svcDateFrom):'início'} → ${svcDateTo?fmt(svcDateTo):'hoje'}`:lbs[period];
   document.getElementById('badge-p').textContent=`${lbl} · ${tot} serviços`;
   document.getElementById('svc-period-info').textContent=`${tot} registros`;
@@ -859,10 +857,8 @@ function updatePeriodPillLabels(){
   const fmtP=d=>{const s=d.toLocaleDateString('pt-BR',{month:'short',year:'2-digit'});return s.charAt(0).toUpperCase()+s.slice(1).replace('. ','/');}
   const cur=fmtP(now);
   const prev=fmtP(new Date(now.getFullYear(),now.getMonth()-1,1));
-  const prev2=fmtP(new Date(now.getFullYear(),now.getMonth()-2,1));
   const sp=document.querySelector('.pill[data-sp="month"]');if(sp)sp.textContent=cur;
   const spv=document.querySelector('.pill[data-sp="prev"]');if(spv)spv.textContent=prev;
-  const spa=document.querySelector('.pill[data-sp="april"]');if(spa)spa.textContent=prev2;
   const mp=document.querySelector('.pill[data-mp="month"]');if(mp)mp.textContent=cur;
   const mpv=document.querySelector('.pill[data-mp="prev"]');if(mpv)mpv.textContent=prev;
 }
