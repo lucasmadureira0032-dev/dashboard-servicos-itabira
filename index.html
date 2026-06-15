@@ -351,7 +351,7 @@ tbody td:first-child{color:var(--t1);white-space:nowrap;}
 <script>
 // ═══════════ CONFIG ═══════════
 const SHEET_ID = '1bsbcYyzsM3ZQ-LzDR3LLGkdVElekD4kx15CJAGqCK18';
-const AUTO_REFRESH_MS = 2 * 60 * 1000; // atualiza a cada 2 minutos
+const SCHEDULE_TIMES = [{h:6,m:30},{h:12,m:0},{h:17,m:0}]; // horários de atualização automática
 
 // ═══════════ STATE ═══════════
 let DATA={services:[],materials:[],matFull:[]};
@@ -839,9 +839,21 @@ function initMatPage(){
 }
 
 // ═══════════ REFRESH ═══════════
+function getNextScheduledTime(){
+  const now=new Date();
+  for(const t of SCHEDULE_TIMES){
+    const next=new Date(now.getFullYear(),now.getMonth(),now.getDate(),t.h,t.m,0,0);
+    if(next>now)return next;
+  }
+  const t=SCHEDULE_TIMES[0];
+  return new Date(now.getFullYear(),now.getMonth(),now.getDate()+1,t.h,t.m,0,0);
+}
 function setLastUpdated(){
   const el=document.getElementById('last-updated');
-  if(el)el.textContent='Atualizado às '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+  if(!el)return;
+  const now=new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+  const next=getNextScheduledTime().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+  el.textContent=`Atualizado às ${now} · próx. ${next}`;
 }
 
 function updatePeriodPillLabels(){
@@ -877,8 +889,9 @@ async function refreshDashboard(isManual=false){
 }
 
 function scheduleRefresh(){
-  if(refreshTimer)clearInterval(refreshTimer);
-  refreshTimer=setInterval(()=>refreshDashboard(false),AUTO_REFRESH_MS);
+  if(refreshTimer)clearTimeout(refreshTimer);
+  const ms=getNextScheduledTime()-new Date();
+  refreshTimer=setTimeout(async()=>{await refreshDashboard(false);scheduleRefresh();},ms);
 }
 
 // ═══════════ MAIN INIT ═══════════
