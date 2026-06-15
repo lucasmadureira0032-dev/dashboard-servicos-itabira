@@ -463,7 +463,8 @@ function normType(t){
 function extractStreet(addr){
   if(!addr)return'';
   const clean=addr.split(',')[0].trim();
-  return clean.length>45?clean.slice(0,43)+'…':clean;
+  const normalized=clean.toLowerCase().replace(/(?:^|\s)\S/g,c=>c.toUpperCase());
+  return normalized.length>45?normalized.slice(0,43)+'…':normalized;
 }
 function isoWeek(d){
   const jan1=new Date(d.getFullYear(),0,1);
@@ -528,7 +529,7 @@ async function loadData(){
 
   const matRows=csvToObjects(csvMat);
   const materials=matRows.map(r=>({date:parseDMY(r['Data']),material:normMat(r['Material']||''),qtd:parseQtd(r['Quantidade']),un:r['Unidade']||'',tipo:r['Tipo de serviço']||''})).filter(r=>r.material&&r.date);
-  const matFull=matRows.map(r=>({date:parseDMY(r['Data']),local:r['Local']||'',tipo:r['Tipo de serviço']||'',material:normMat(r['Material']||''),rawMat:r['Material']||'',qtd:parseQtd(r['Quantidade']),rawQtd:r['Quantidade']||'',un:r['Unidade']||'',obs:r['Observação']||'',colab:parseInt(r['Colaboradores envolvidos'])||0})).filter(r=>r.date);
+  const matFull=matRows.map(r=>({date:parseDMY(r['Data']),local:(r['Local']||'').toLowerCase().replace(/(?:^|\s)\S/g,c=>c.toUpperCase()),tipo:r['Tipo de serviço']||'',material:normMat(r['Material']||''),rawMat:r['Material']||'',qtd:parseQtd(r['Quantidade']),rawQtd:r['Quantidade']||'',un:r['Unidade']||'',obs:r['Observação']||'',colab:parseInt(r['Colaboradores envolvidos'])||0})).filter(r=>r.date);
 
   // PREÇOS — aba opcional, usa padrões se não existir
   UNIT_PRICES={...DEFAULT_PRICES};
