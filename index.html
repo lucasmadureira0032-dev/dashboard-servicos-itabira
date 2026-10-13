@@ -473,15 +473,79 @@ let matInited=false;
 let refreshTimer=null;
 let MAP_CATS=[]; // os 3 tipos mais frequentes, coloridos no mapa (cor fixa por tipo)
 
-// Preços unitários (R$) - editáveis pelo usuário
+// Preços de referência (R$, desonerado) usados quando a aba PREÇOS da planilha não informa o material.
+// p = preço, u = unidade do preço, f = fonte. Valores pesquisados em out/2026 em réplicas da tabela SINAPI;
+// confira no relatório oficial da Caixa (SINAPI-MG) antes de usar em orçamento formal.
 const DEFAULT_PRICES={
-  'Areia Grossa':85,'Cimento':38,'Bloquetes':4.5,'Grelha':280,'Brita':75,
-  'Trilho':520,'Manilha 40':160,'Cascalho de Bica':130,'Quadro':850,
-  'Terra Compactável':65,'Pedras':95,'Meio-fio':48,'Perfil':180,
-  'Retroescavadeira':350,'Caminhão Bascula':280
+  'Areia Grossa':     {p:167.15,u:'m³',f:'SINAPI 367 · MG · ago/2026'},
+  'Cimento':          {p:48.50, u:'saco',f:'SINAPI 1379 (R$ 0,97/kg × 50 kg)'},
+  'Brita':            {p:130.78,u:'m³',f:'SINAPI 4721 · MG'},
+  'Cascalho de Bica': {p:130.00,u:'m³',f:'Estimativa (sem item SINAPI equivalente)'},
+  'Pedras':           {p:161.97,u:'m³',f:'SINAPI 4730 · média nacional · jun/2026'},
+  'Terra Compactável':{p:65.00, u:'m³',f:'Estimativa (sem item SINAPI equivalente)'},
+  'Bloquetes':        {p:87.87, u:'m²',f:'SINAPI 695 · média nacional · dez/2025'},
+  'Grelha':           {p:379.66,u:'un',f:'SINAPI 11245 (grelha FoFo 300×1000 c/ requadro)'},
+  'Quadro':           {p:850.00,u:'un',f:'Estimativa (sem item SINAPI equivalente)'},
+  'Manilha 40':       {p:139.02,u:'m',f:'SINAPI 7745 · média nacional · jul/2026'},
+  'Meio-fio':         {p:47.35, u:'m',f:'SINAPI 41679 · MG · ago/2026'},
+  'Trilho':           {p:520.00,u:'un',f:'Estimativa (sem item SINAPI equivalente)'},
+  'Perfil':           {p:180.00,u:'un',f:'Estimativa (sem item SINAPI equivalente)'},
+  'Retroescavadeira': {p:161.36,u:'h',f:'SINAPI 5678 · CHP diurno'},
+  'Caminhão Bascula': {p:304.70,u:'h',f:'SINAPI 91386 · CHP diurno (10 m³)'}
 };
-let UNIT_PRICES={...DEFAULT_PRICES};
-let PRICES_META={fonte:'padrão (edite na planilha)',atualizado:''};
+// Data da pesquisa dos preços acima. Um preço da aba PREÇOS só substitui o padrão se for desta data ou mais novo.
+const DEFAULT_PRICES_DATE='13/10/2026';
+let UNIT_PRICES={},PRICE_UNIT={},PRICE_SRC={};
+let PRICES_META={fonte:'padrão',atualizado:''};
+function resetPrices(){
+  UNIT_PRICES={};PRICE_UNIT={};PRICE_SRC={};
+  Object.entries(DEFAULT_PRICES).forEach(([k,v])=>{UNIT_PRICES[k]=v.p;PRICE_UNIT[k]=v.u;PRICE_SRC[k]=v.f;});
+}
+resetPrices();
+
+// ═══════════ CONVERSÃO DE UNIDADES ═══════════
+// Volume de referência dos recipientes usados nos lançamentos (ajuste se a equipe usar outro tamanho)
+const VOL_CARRINHO=0.06; // carrinho de mão de obra: 60 litros
+const VOL_LATA=0.018;    // lata de 18 litros
+// Peças vendidas por metro: comprimento padrão quando a observação não diz "X m cada"
+const DEFAULT_LEN={'Manilha 40':1,'Meio-fio':1};
+const AREA_UN={'Bloquetes':0.02}; // bloquete retangular 20 × 10 cm
+const normUnit=u=>{
+  const s=String(u||'').trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/\.$/,'');
+  if(/^m(3|³)$|^metros? cubicos?$/.test(s))return'm³';
+  if(/^m(2|²)$|^metros? quadrados?$/.test(s))return'm²';
+  if(/^(m|metros?|ml)$/.test(s))return'm';
+  if(/^(h|hs|hr|hora|horas)$/.test(s))return'h';
+  if(/^(un|und|unid|unidade|unidades|pc|pç|peca|pecas)$/.test(s))return'un';
+  if(/^carrinhos?$/.test(s))return'carrinho';
+  if(/^latas?$/.test(s))return'lata';
+  if(/^sacos?$/.test(s))return'saco';
+  if(/^(kg|quilos?)$/.test(s))return'kg';
+  return s;
+};
+// Comprimento por peça escrito na observação: "1,30 m cada", "90 cm comprimento"
+function lengthFromObs(obs){
+  const m=String(obs||'').match(/(\d+(?:[.,]\d+)?)\s*(cm|m)\b/i);
+  if(!m)return null;
+  const v=parseFloat(m[1].replace(',','.'));
+  return m[2].toLowerCase()==='cm'?v/100:v;
+}
+// Quantidade do lançamento convertida para a unidade do preço; null quando não há conversão possível
+function qtyInPriceUnit(m,priceUnit){
+  const from=normUnit(m.un)||'un',to=normUnit(priceUnit)||'un',q=m.qtd;
+  if(from===to)return q;
+  if(to==='m³'){if(from==='carrinho')return q*VOL_CARRINHO;if(from==='lata')return q*VOL_LATA;}
+  if(to==='saco'&&from==='kg')return q/50;
+  if(to==='m'&&from==='un'){const len=lengthFromObs(m.obs)??DEFAULT_LEN[m.material];return len!=null?q*len:null;}
+  if(to==='m²'&&from==='un'&&AREA_UN[m.material])return q*AREA_UN[m.material];
+  return null;
+}
+// "R$ 1.234,56" → 1234.56
+function parseBRL(s){
+  s=String(s||'').replace(/[^\d,.-]/g,'');
+  if(s.includes(','))s=s.replace(/\./g,'').replace(',','.');
+  return parseFloat(s);
+}
 
 // ═══════════ ÍCONES ═══════════
 const icons=()=>{if(window.lucide)lucide.createIcons({attrs:{'stroke-width':1.75}});};
@@ -741,20 +805,26 @@ async function loadData(){
   const matFull=matRows.map(r=>({date:parseDMY(col(r,'Data')),local:col(r,'Local').toLowerCase().replace(/(?:^|\s)\S/g,c=>c.toUpperCase()),tipo:col(r,'Tipo de serviço'),material:normMat(col(r,'Material')),rawMat:col(r,'Material'),qtd:parseQtd(col(r,'Quantidade')),rawQtd:col(r,'Quantidade'),un:col(r,'Unidade'),obs:col(r,'Observação'),colab:parseInt(col(r,'Colaboradores envolvidos'))||0})).filter(r=>r.date);
 
   // PREÇOS — aba opcional, usa padrões se não existir
-  UNIT_PRICES={...DEFAULT_PRICES};
+  resetPrices();
   PRICES_META={fonte:'padrão',atualizado:''};
   try{
     const csv4=await fetchSheet('PREÇOS');
     const priceRows=csvToObjects(csv4);
-    let fonte='',atualizado='';
+    let atualizado='',n=0;
+    const minDate=parseDMY(DEFAULT_PRICES_DATE);
     priceRows.forEach(r=>{
       const mat=normMat(col(r,'Material'));
-      const val=parseFloat(col(r,'Preço Unitário (R$)').replace(',','.'));
-      if(mat&&!isNaN(val)&&val>0)UNIT_PRICES[mat]=val;
-      if(col(r,'Fonte')&&!fonte)fonte=col(r,'Fonte');
+      const val=parseBRL(col(r,'Preço Unitário (R$)','Preço Unitário','Preço'));
+      if(!mat||isNaN(val)||val<=0)return;
+      // Vale a referência mais recente: linha com data anterior à pesquisa do painel fica de fora
+      const dt=parseDMY(col(r,'Atualizado em'));
+      if(dt&&DEFAULT_PRICES[mat]&&dt<minDate)return;
+      UNIT_PRICES[mat]=val;n++;
+      if(col(r,'Unidade'))PRICE_UNIT[mat]=normUnit(col(r,'Unidade'));
+      if(col(r,'Fonte'))PRICE_SRC[mat]=col(r,'Fonte');
       if(col(r,'Atualizado em')&&!atualizado)atualizado=col(r,'Atualizado em');
     });
-    PRICES_META={fonte:fonte||'planilha',atualizado};
+    if(n)PRICES_META={fonte:'planilha',atualizado};
   }catch(e){/* aba PREÇOS não existe ainda — usando valores padrão */}
 
   services.sort((a,b)=>a.date-b.date);
@@ -1075,21 +1145,27 @@ function exportServices(){
 }
 
 // ═══════════ CUSTO ═══════════
+// Soma o custo convertendo cada lançamento para a unidade do preço.
+// Lançamentos sem conversão possível (ex.: "viagem" para preço por hora) ficam fora do total e são avisados.
 function calcCusto(mats){
-  const byMat={};
-  mats.filter(m=>m.material).forEach(m=>{if(!byMat[m.material])byMat[m.material]={qtd:0,un:m.un};byMat[m.material].qtd+=m.qtd;});
-  let total=0,itens=0;
-  const rows=Object.entries(byMat).map(([mat,{qtd,un}])=>{
-    const price=UNIT_PRICES[mat]||0;
-    const cost=qtd*price;
-    total+=cost;if(price>0)itens++;
-    return{mat,qtd,un,price,cost};
-  }).filter(r=>r.price>0).sort((a,b)=>b.cost-a.cost);
+  const byMat={},skipped={};
+  mats.filter(m=>m.material).forEach(m=>{
+    const price=UNIT_PRICES[m.material];if(!price)return;
+    const pu=PRICE_UNIT[m.material]||'un';
+    const q=qtyInPriceUnit(m,pu);
+    if(q==null){const k=`${m.material} (${normUnit(m.un)||'sem unidade'})`;skipped[k]=(skipped[k]||0)+1;return;}
+    (byMat[m.material]||(byMat[m.material]={qtd:0,un:pu,price})).qtd+=q;
+  });
+  let total=0;
+  const rows=Object.entries(byMat).map(([mat,r])=>{const cost=r.qtd*r.price;total+=cost;return{mat,...r,cost};}).sort((a,b)=>b.cost-a.cost);
   document.getElementById('custo-total').textContent=fmtBRL(total);
-  document.getElementById('custo-itens').textContent=`${itens} material(is)`;
+  document.getElementById('custo-itens').textContent=`${rows.length} material(is)`;
   const fonteEl=document.getElementById('custo-fonte');
-  if(fonteEl){const at=PRICES_META.atualizado?` · atualizado em ${PRICES_META.atualizado}`:'';fonteEl.textContent=`Fonte: ${PRICES_META.fonte}${at}`;}
-  document.getElementById('custo-body').innerHTML=rows.map(r=>`<tr><td>${esc(r.mat)}</td><td>${r.qtd.toLocaleString('pt-BR',{maximumFractionDigits:2})}</td><td>${fmtBRL(r.price)}/${esc(r.un||'un')}</td><td>${fmtBRL(r.cost)}</td></tr>`).join('');
+  if(fonteEl){const at=PRICES_META.atualizado?` · atualizado em ${PRICES_META.atualizado}`:'';fonteEl.textContent=PRICES_META.fonte==='planilha'?`Preços da aba PREÇOS${at}`:'Preços de referência SINAPI (padrão do painel)';}
+  const fq=v=>v.toLocaleString('pt-BR',{maximumFractionDigits:2});
+  const sk=Object.entries(skipped);
+  document.getElementById('custo-body').innerHTML=rows.map(r=>`<tr title="${esc(PRICE_SRC[r.mat]||'')}"><td>${esc(r.mat)}</td><td>${fq(r.qtd)} ${esc(r.un)}</td><td>${fmtBRL(r.price)}/${esc(r.un)}</td><td>${fmtBRL(r.cost)}</td></tr>`).join('')
+    +(sk.length?`<tr><td colspan="4" style="color:var(--t3);font-size:11px;padding-top:8px">Fora do total por falta de conversão de unidade: ${sk.map(([k,n])=>`${esc(k)} — ${n} lançamento(s)`).join('; ')}</td></tr>`:'');
 }
 
 // ═══════════ MATERIAIS ═══════════
@@ -1160,14 +1236,15 @@ function mkComparativo(){
 // ═══════════ PREÇOS - editor ═══════════
 function renderPriceEditor(){
   const grid=document.getElementById('price-grid');
-  const src=PRICES_META.fonte!=='padrão'
-    ?`<p class="price-note">${ico('circle-check')}Preços carregados da aba <strong>PREÇOS</strong> da planilha (${esc(PRICES_META.fonte)}${PRICES_META.atualizado?' · '+esc(PRICES_META.atualizado):''}) — edições abaixo valem só nesta sessão.</p>`
-    :`<p class="price-note">${ico('info')}Usando valores padrão. Para atualizar permanentemente, edite a aba <strong>PREÇOS</strong> na planilha Google Sheets.</p>`;
-  grid.innerHTML=src+Object.entries(UNIT_PRICES).map(([mat,price])=>`
-    <div class="price-row">
-      <span class="price-name">${esc(mat)}</span>
-      <input class="price-input" type="number" min="0" step="0.5" value="${price}" data-mat="${esc(mat)}">
-      <span class="price-unit">R$/un</span>
+  const src=PRICES_META.fonte==='planilha'
+    ?`<p class="price-note">${ico('circle-check')}Preços carregados da aba <strong>PREÇOS</strong> da planilha${PRICES_META.atualizado?' ('+esc(PRICES_META.atualizado)+')':''}. Edições abaixo valem só nesta sessão.</p>`
+    :`<p class="price-note">${ico('info')}Usando os preços de referência do painel. Para atualizar permanentemente, edite a aba <strong>PREÇOS</strong> na planilha Google Sheets.</p>`;
+  const note=`<p class="price-note">${ico('ruler')}Conversões: 1 carrinho = ${VOL_CARRINHO*1000} L, 1 lata = ${VOL_LATA*1000} L, 1 saco de cimento = 50 kg; peças por metro usam o comprimento escrito na observação ("1,30 m cada").</p>`;
+  grid.innerHTML=src+note+Object.entries(UNIT_PRICES).map(([mat,price])=>`
+    <div class="price-row" title="${esc(PRICE_SRC[mat]||'')}">
+      <span class="price-name">${esc(mat)}<br><small style="color:var(--t3);font-size:10px">${esc(PRICE_SRC[mat]||'')}</small></span>
+      <input class="price-input" type="number" min="0" step="0.01" value="${price}" data-mat="${esc(mat)}">
+      <span class="price-unit">R$/${esc(PRICE_UNIT[mat]||'un')}</span>
     </div>`).join('');
   grid.querySelectorAll('.price-input').forEach(inp=>{
     inp.addEventListener('input',()=>{
