@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ITAURB - Coordenadoria de Fiscalização e Infraestrutura Urbana | Itabira MG</title>
+<title>ITAURB · Coordenadoria de Fiscalização e Infraestrutura Urbana · Itabira, MG</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
@@ -289,7 +289,7 @@ td.map-cell.none{opacity:.3;}
   <header>
     <div class="logo">
       <img src="pref-itabira.png" alt="Brasão de Itabira">
-      <div><h1>Coordenadoria de Fiscalização e Infraestrutura Urbana - ITAURB</h1><span>Prefeitura Municipal de Itabira - MG</span></div>
+      <div><h1>Coordenadoria de Fiscalização e Infraestrutura Urbana (ITAURB)</h1><span>Prefeitura Municipal de Itabira, MG</span></div>
     </div>
     <div class="tab-nav">
       <button class="tab-btn active" data-tab="servicos"><i data-lucide="wrench"></i>Serviços</button>
@@ -336,15 +336,15 @@ td.map-cell.none{opacity:.3;}
 
       <h2 class="section-title"><i data-lucide="layout-dashboard"></i>Visão geral<small id="cmp-label"></small></h2>
       <div class="kpi-row">
-        <div class="kpi"><div class="kpi-top"><div class="kpi-label">Total de serviços</div><div class="kpi-icon"><i data-lucide="wrench"></i></div></div><div class="kpi-val" id="k-total">-</div><div class="kpi-delta" id="k-total-d"></div></div>
-        <div class="kpi"><div class="kpi-top"><div class="kpi-label">Média por dia trabalhado</div><div class="kpi-icon"><i data-lucide="activity"></i></div></div><div class="kpi-val" id="k-avg">-</div><div class="kpi-delta" id="k-avg-d"></div></div>
-        <div class="kpi"><div class="kpi-top"><div class="kpi-label">Últimos 7 dias</div><div class="kpi-icon"><i data-lucide="calendar-days"></i></div></div><div class="kpi-val" id="k-week">-</div><div class="kpi-delta" id="k-week-d"></div></div>
-        <div class="kpi"><div class="kpi-top"><div class="kpi-label">Endereços atendidos</div><div class="kpi-icon"><i data-lucide="map-pin"></i></div></div><div class="kpi-val" id="k-addr">-</div><div class="kpi-delta" id="k-addr-d"></div></div>
+        <div class="kpi"><div class="kpi-top"><div class="kpi-label">Total de serviços</div><div class="kpi-icon"><i data-lucide="wrench"></i></div></div><div class="kpi-val" id="k-total"></div><div class="kpi-delta" id="k-total-d"></div></div>
+        <div class="kpi"><div class="kpi-top"><div class="kpi-label">Média por dia trabalhado</div><div class="kpi-icon"><i data-lucide="activity"></i></div></div><div class="kpi-val" id="k-avg"></div><div class="kpi-delta" id="k-avg-d"></div></div>
+        <div class="kpi"><div class="kpi-top"><div class="kpi-label">Últimos 7 dias</div><div class="kpi-icon"><i data-lucide="calendar-days"></i></div></div><div class="kpi-val" id="k-week"></div><div class="kpi-delta" id="k-week-d"></div></div>
+        <div class="kpi"><div class="kpi-top"><div class="kpi-label">Endereços atendidos</div><div class="kpi-icon"><i data-lucide="map-pin"></i></div></div><div class="kpi-val" id="k-addr"></div><div class="kpi-delta" id="k-addr-d"></div></div>
       </div>
 
       <h2 class="section-title"><i data-lucide="chart-column"></i>Ritmo de trabalho</h2>
       <div class="row2">
-        <div class="panel" style="height:300px;"><div class="panel-head"><span class="panel-title" id="evo-title">Evolução</span><span class="panel-sub" id="badge-p">-</span></div><div class="chart-wrap"><canvas id="c-daily" role="img" aria-label="Evolução de serviços no período"></canvas></div></div>
+        <div class="panel" style="height:300px;"><div class="panel-head"><span class="panel-title" id="evo-title">Evolução</span><span class="panel-sub" id="badge-p"></span></div><div class="chart-wrap"><canvas id="c-daily" role="img" aria-label="Evolução de serviços no período"></canvas></div></div>
         <div class="panel" style="height:300px;"><div class="panel-head"><span class="panel-title">Tipos de serviço</span><span class="panel-sub">Clique numa barra para filtrar</span></div><div class="chart-wrap"><canvas id="c-types" role="img" aria-label="Serviços por tipo"></canvas></div></div>
       </div>
       <div class="row2">
@@ -375,7 +375,7 @@ td.map-cell.none{opacity:.3;}
       <h2 class="section-title"><i data-lucide="list"></i>Detalhamento<small>clique numa linha para ver no mapa</small></h2>
       <div class="table-panel">
         <div class="tbl-wrap"><table><thead><tr><th>Data</th><th>Endereço</th><th>Tipo de serviço</th><th>Origem</th><th>Observações</th><th title="Ver no mapa"></th></tr></thead><tbody id="t-body"></tbody></table></div>
-        <div class="pagination"><button class="pg-btn" id="pg-prev"><i data-lucide="chevron-left"></i>Anterior</button><div class="pg-info" id="pg-info">-</div><button class="pg-btn" id="pg-next">Próximo<i data-lucide="chevron-right"></i></button></div>
+        <div class="pagination"><button class="pg-btn" id="pg-prev"><i data-lucide="chevron-left"></i>Anterior</button><div class="pg-info" id="pg-info"></div><button class="pg-btn" id="pg-next">Próximo<i data-lucide="chevron-right"></i></button></div>
       </div>
     </main>
   </div>
@@ -403,17 +403,17 @@ td.map-cell.none{opacity:.3;}
 
       <h2 class="section-title"><i data-lucide="layout-dashboard"></i>Visão geral</h2>
       <div class="kpi-row">
-        <div class="kpi"><div class="kpi-top"><div class="kpi-label">Total de lançamentos</div><div class="kpi-icon"><i data-lucide="clipboard-list"></i></div></div><div class="kpi-val" id="mk-total">-</div><div class="kpi-sub">Registros no período</div></div>
-        <div class="kpi"><div class="kpi-top"><div class="kpi-label">Materiais distintos</div><div class="kpi-icon"><i data-lucide="layers"></i></div></div><div class="kpi-val" id="mk-tipos">-</div><div class="kpi-sub">Tipos utilizados</div></div>
-        <div class="kpi"><div class="kpi-top"><div class="kpi-label">Obras / locais</div><div class="kpi-icon"><i data-lucide="map-pin"></i></div></div><div class="kpi-val" id="mk-obras">-</div><div class="kpi-sub">Locais atendidos</div></div>
-        <div class="kpi"><div class="kpi-top"><div class="kpi-label">Dias trabalhados</div><div class="kpi-icon"><i data-lucide="calendar-check"></i></div></div><div class="kpi-val" id="mk-dias">-</div><div class="kpi-sub">Dias com atividade</div></div>
+        <div class="kpi"><div class="kpi-top"><div class="kpi-label">Total de lançamentos</div><div class="kpi-icon"><i data-lucide="clipboard-list"></i></div></div><div class="kpi-val" id="mk-total"></div><div class="kpi-sub">Registros no período</div></div>
+        <div class="kpi"><div class="kpi-top"><div class="kpi-label">Materiais distintos</div><div class="kpi-icon"><i data-lucide="layers"></i></div></div><div class="kpi-val" id="mk-tipos"></div><div class="kpi-sub">Tipos utilizados</div></div>
+        <div class="kpi"><div class="kpi-top"><div class="kpi-label">Obras / locais</div><div class="kpi-icon"><i data-lucide="map-pin"></i></div></div><div class="kpi-val" id="mk-obras"></div><div class="kpi-sub">Locais atendidos</div></div>
+        <div class="kpi"><div class="kpi-top"><div class="kpi-label">Dias trabalhados</div><div class="kpi-icon"><i data-lucide="calendar-check"></i></div></div><div class="kpi-val" id="mk-dias"></div><div class="kpi-sub">Dias com atividade</div></div>
       </div>
 
       <div class="custo-banner">
         <div class="custo-main">
           <div class="custo-label"><i data-lucide="wallet"></i>Custo estimado de materiais</div>
-          <div class="custo-val" id="custo-total">R$ -</div>
-          <div class="custo-note"><span id="custo-fonte">Baseado em preços de referência</span> · <span id="custo-itens">-</span> com preço</div>
+          <div class="custo-val" id="custo-total"></div>
+          <div class="custo-note"><span id="custo-fonte">Baseado em preços de referência</span> · <span id="custo-itens"></span> com preço</div>
           <button class="btn-ghost" id="toggle-prices" style="align-self:flex-start;margin-top:6px"><i data-lucide="settings-2"></i>Configurar preços unitários</button>
         </div>
         <div class="custo-breakdown">
@@ -453,7 +453,7 @@ td.map-cell.none{opacity:.3;}
           <button class="btn-ghost" id="export-mat" title="Baixar os registros filtrados em planilha"><i data-lucide="download"></i>Exportar CSV</button>
         </div>
         <div class="tbl-wrap"><table><thead><tr><th>Data</th><th>Local</th><th>Tipo de serviço</th><th>Material</th><th style="text-align:right">Qtd</th><th>Un.</th><th>Equipe</th><th>Observação</th></tr></thead><tbody id="mt-body"></tbody></table></div>
-        <div class="pagination"><button class="pg-btn" id="mpg-prev"><i data-lucide="chevron-left"></i>Anterior</button><div class="pg-info" id="mpg-info">-</div><button class="pg-btn" id="mpg-next">Próximo<i data-lucide="chevron-right"></i></button></div>
+        <div class="pagination"><button class="pg-btn" id="mpg-prev"><i data-lucide="chevron-left"></i>Anterior</button><div class="pg-info" id="mpg-info"></div><button class="pg-btn" id="mpg-next">Próximo<i data-lucide="chevron-right"></i></button></div>
       </div>
     </main>
   </div>
@@ -621,7 +621,7 @@ function hBar(id,entries,{selected='',onPick=null,fmtV=null,tip=null}={}){
   return mkChart(id,{type:'bar',data:{labels:entries.map(([k])=>k),datasets:[{data:entries.map(([,v])=>v),backgroundColor:colors,hoverBackgroundColor:entries.map(([k])=>k===selected?c.accent:c.s[0]),borderRadius:4,maxBarThickness:18,categoryPercentage:.8}]},
     options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,layout:{padding:{right:36}},
       onClick:onPick?(e,els)=>{if(els.length)onPick(entries[els[0].index][0]);}:undefined,onHover:onPick?pointer:undefined,
-      plugins:{legend:{display:false},valueLabels:{enabled:true,format:fmtV},tooltip:{callbacks:{label:tip||(x=>`${x.raw.toLocaleString('pt-BR')} serviço(s)`)}}},
+      plugins:{legend:{display:false},valueLabels:{enabled:true,format:fmtV},tooltip:{callbacks:{label:tip||(x=>pl(x.raw,'serviço','serviços'))}}},
       scales:{x:{display:false,beginAtZero:true,grace:'5%'},y:{grid:{display:false},border:{display:false},ticks:{color:c.t2,font:{size:11}}}}}});
 }
 // Barras verticais de uma cor
@@ -629,7 +629,7 @@ function vBar(id,labels,values,{tip=null,highlight=-1}={}){
   const c=T();
   return mkChart(id,{type:'bar',data:{labels,datasets:[{data:values,backgroundColor:values.map((_,i)=>i===highlight?c.accent:c.s[0]),borderRadius:4,maxBarThickness:36,categoryPercentage:.7}]},
     options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:18}},
-      plugins:{legend:{display:false},valueLabels:{enabled:true},tooltip:{callbacks:{label:tip||(x=>`${x.raw.toLocaleString('pt-BR')} serviço(s)`)}}},
+      plugins:{legend:{display:false},valueLabels:{enabled:true},tooltip:{callbacks:{label:tip||(x=>pl(x.raw,'serviço','serviços'))}}},
       scales:{x:{grid:{display:false},border:{display:false},ticks:{color:c.t2}},y:{display:false,beginAtZero:true,grace:'8%'}}}});
 }
 
@@ -652,7 +652,11 @@ setTheme(isDark,false);
 
 // ═══════════ UTILS ═══════════
 const parseDMY=s=>{if(!s)return null;const m=String(s).trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);if(!m)return null;const d=new Date(+m[3],+m[2]-1,+m[1]);return d.getDate()===+m[1]&&d.getMonth()===+m[2]-1?d:null;};
-const fmt=d=>d?d.toLocaleDateString('pt-BR'):'-';
+const fmt=d=>d?d.toLocaleDateString('pt-BR'):'';
+// "3 serviços", "1 serviço": plural de acordo com o número
+const pl=(n,um,varios)=>`${(+n).toLocaleString('pt-BR',{maximumFractionDigits:2})} ${Math.abs(+n)===1?um:varios}`;
+// Campo em branco quando a ficha traz só um traço ("-", "—")
+const txt=v=>{v=String(v??'').trim();return /^[-—–\s]*$/.test(v)?'':v;};
 const fmtS=d=>d?d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'}):'';
 const fmtKey=d=>d?fmtS(d)+'/'+d.getFullYear().toString().slice(2):'';
 const fmtBRL=v=>v.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
@@ -907,7 +911,7 @@ function applyFilters(svc,f=filterState()){
 function updateFilterUI(f){
   const active=[f.q,f.tp,f.rua,f.sr].filter(Boolean).length;
   document.getElementById('f-clear').style.display=active?'':'none';
-  document.getElementById('f-count').textContent=active?`${active} filtro(s) ativo(s)`:'';
+  document.getElementById('f-count').textContent=active?pl(active,'filtro ativo','filtros ativos'):'';
 }
 // Preenche os selects de tipo e endereço mantendo a seleção atual
 function fillServiceFilters(){
@@ -951,7 +955,7 @@ function updateKPIs(svc,prevSvc,rg){
     document.getElementById('k-addr-d').innerHTML=deltaHTML(uniq(svc),uniq(prevSvc),rg.label);
   }else{
     document.getElementById('k-total-d').innerHTML=`<span>Todo o histórico</span>`;
-    document.getElementById('k-avg-d').innerHTML=`<span>${days} dia(s) com serviço</span>`;
+    document.getElementById('k-avg-d').innerHTML=`<span>${pl(days,'dia','dias')} com serviço</span>`;
     document.getElementById('k-addr-d').innerHTML=`<span>Ruas diferentes atendidas</span>`;
   }
   // "Últimos 7 dias" segue os filtros mas não o período, para sempre mostrar a semana corrente
@@ -973,7 +977,7 @@ function mkEvolution(svc){
   mkChart('c-daily',{type:'line',data:{labels:b.labels,datasets:[{data:vals,borderColor:c.s[0],borderWidth:2,tension:.3,fill:true,pointRadius:vals.length<=20?3:0,pointHoverRadius:5,pointBackgroundColor:c.s[0],pointBorderColor:c.s1,pointBorderWidth:2,
     backgroundColor:ctx=>{const a=ctx.chart.chartArea;if(!a)return'transparent';const g=ctx.chart.ctx.createLinearGradient(0,a.top,0,a.bottom);g.addColorStop(0,hexA(c.s[0],.32));g.addColorStop(1,hexA(c.s[0],0));return g;}}]},
     options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
-      plugins:{legend:{display:false},crosshair:{enabled:true},tooltip:{callbacks:{title:x=>b.tips[x[0].dataIndex],label:x=>`${x.raw} serviço(s)`}}},
+      plugins:{legend:{display:false},crosshair:{enabled:true},tooltip:{callbacks:{title:x=>b.tips[x[0].dataIndex],label:x=>pl(x.raw,'serviço','serviços')}}},
       scales:{x:{grid:{display:false},border:{display:false},ticks:{color:c.t3,maxRotation:0,autoSkipPadding:16}},y:{grid:{color:c.grid},border:{display:false},beginAtZero:true,ticks:{precision:0,color:c.t3,maxTicksLimit:5}}}}});
 }
 function mkTypes(svc){
@@ -986,7 +990,7 @@ function mkMonthly(){
   const svc=applyFilters(DATA.services),now=new Date(),months=[];
   for(let i=5;i>=0;i--){const d=new Date(now.getFullYear(),now.getMonth()-i,1);months.push({m:d.getMonth(),y:d.getFullYear(),label:d.toLocaleDateString('pt-BR',{month:'short'}).replace('.','')});}
   const vals=months.map(mo=>svc.filter(s=>s.date.getMonth()===mo.m&&s.date.getFullYear()===mo.y).length);
-  vBar('c-status',months.map(m=>m.label.charAt(0).toUpperCase()+m.label.slice(1)),vals,{highlight:5,tip:x=>`${x.raw} serviço(s)${x.dataIndex===5?' (mês em andamento)':''}`});
+  vBar('c-status',months.map(m=>m.label.charAt(0).toUpperCase()+m.label.slice(1)),vals,{highlight:5,tip:x=>`${pl(x.raw,'serviço','serviços')}${x.dataIndex===5?' (mês em andamento)':''}`});
 }
 function mkWeekday(svc){
   const order=[1,2,3,4,5,6,0],vals=order.map(()=>0);
@@ -1064,7 +1068,7 @@ async function geocodeServices(services){
   const todo=Object.values(pending);
   if(!todo.length||geoRunning)return;
   geoRunning=true;
-  geoStatus(`${ico('loader-circle')}Localizando ${todo.length} endereço(s) sem coordenadas…`);
+  geoStatus(`${ico('loader-circle')}Localizando ${pl(todo.length,'endereço sem coordenadas','endereços sem coordenadas')}…`);
   let done=0,found=0;
   try{
     for(const p of todo){
@@ -1078,7 +1082,7 @@ async function geocodeServices(services){
   // Se a planilha foi recarregada durante a busca, aplica o cache aos registros novos
   DATA.services.forEach(s=>{if(!s.coords&&s.endereco){const c=geoCached(s.endereco);if(c){s.coords=c;s.geo=true;}}});
   renderMap(filtered,true);
-  geoStatus(`${ico('circle-check')}${found} de ${done} endereço(s) localizados — salvos neste navegador`,5000);
+  geoStatus(`${ico('circle-check')}${found} de ${pl(done,'endereço localizado','endereços localizados')}. O resultado fica salvo neste navegador.`,5000);
 }
 
 // ═══════════ MAP ═══════════
@@ -1106,8 +1110,8 @@ function renderLegend(svc){
 function popupHTML(s){
   const k=catOf(s);
   return`<div class="pop-addr">${esc(s.endereco||'Endereço não informado')}</div><div class="pop-date">${WEEKDAYS[s.date.getDay()]}, ${fmt(s.date)}</div>`
-    +`<div class="pop-tipo"><span class="leg-dot" style="background:${catColor(k)}"></span>${esc(s.tipo||'-')}</div>`
-    +(s.obs?`<div class="pop-obs">${esc(s.obs.length>160?s.obs.slice(0,158)+'…':s.obs)}</div>`:'')
+    +`<div class="pop-tipo"><span class="leg-dot" style="background:${catColor(k)}"></span>${esc(txt(s.tipo))}</div>`
+    +(txt(s.obs)?`<div class="pop-obs">${esc(txt(s.obs).length>160?txt(s.obs).slice(0,158)+'…':txt(s.obs))}</div>`:'')
     +(s.geo?`<div class="pop-approx">Local aproximado pelo endereço</div>`:'');
 }
 function renderMap(svc,fit){
@@ -1152,8 +1156,8 @@ function renderTable(svc){
   const total=tableRows.length,pages=Math.ceil(total/PER)||1;
   if(page>pages)page=pages;
   const s0=(page-1)*PER,slice=tableRows.slice(s0,page*PER);
-  document.getElementById('t-body').innerHTML=slice.length?slice.map((s,i)=>`<tr class="clickable" data-i="${s0+i}" title="${s.coords?'Ver no mapa':'Sem localização no mapa'}"><td>${fmt(s.date)}</td><td style="max-width:220px;color:var(--t1)">${esc(s.endereco||'-')}</td><td style="max-width:260px">${esc(s.tipo||'-')}</td><td><span class="badge ${s.source==='formulario'?'badge-blue':'badge-amber'}">${s.source==='formulario'?'Formulário':'Planilha'}</span></td><td style="max-width:220px;color:var(--t3);white-space:pre-line">${esc(s.obs||'-')}</td><td class="map-cell${s.coords?'':' none'}">${ico(s.coords?'map-pin':'map-pin-off')}</td></tr>`).join(''):`<tr><td colspan="6" style="text-align:center;color:var(--t3);padding:28px">Nenhum serviço encontrado com os filtros atuais</td></tr>`;
-  document.getElementById('pg-info').textContent=`${total?s0+1:0}–${Math.min(page*PER,total)} de ${total}`;
+  document.getElementById('t-body').innerHTML=slice.length?slice.map((s,i)=>`<tr class="clickable" data-i="${s0+i}" title="${s.coords?'Ver no mapa':'Sem localização no mapa'}"><td>${fmt(s.date)}</td><td style="max-width:220px;color:var(--t1)">${esc(txt(s.endereco))}</td><td style="max-width:260px">${esc(txt(s.tipo))}</td><td><span class="badge ${s.source==='formulario'?'badge-blue':'badge-amber'}">${s.source==='formulario'?'Formulário':'Planilha'}</span></td><td style="max-width:220px;color:var(--t3);white-space:pre-line">${esc(txt(s.obs))}</td><td class="map-cell${s.coords?'':' none'}">${ico(s.coords?'map-pin':'map-pin-off')}</td></tr>`).join(''):`<tr><td colspan="6" style="text-align:center;color:var(--t3);padding:28px">Nenhum serviço encontrado com os filtros atuais</td></tr>`;
+  document.getElementById('pg-info').textContent=total?`${s0+1} a ${Math.min(page*PER,total)} de ${total}`:'Nenhum registro';
   document.getElementById('pg-prev').disabled=page<=1;document.getElementById('pg-next').disabled=page>=pages;
   icons();
 }
@@ -1178,7 +1182,7 @@ function calcCusto(mats){
   let total=0;
   const rows=Object.entries(byMat).map(([mat,r])=>{const cost=r.qtd*r.price;total+=cost;return{mat,...r,cost};}).sort((a,b)=>b.cost-a.cost);
   document.getElementById('custo-total').textContent=fmtBRL(total);
-  document.getElementById('custo-itens').textContent=`${rows.length} material(is)`;
+  document.getElementById('custo-itens').textContent=pl(rows.length,'material','materiais');
   const fonteEl=document.getElementById('custo-fonte');
   if(fonteEl){const at=PRICES_META.atualizado?` · atualizado em ${PRICES_META.atualizado}`:'';fonteEl.textContent=PRICES_META.fonte==='planilha'?`Preços da aba PREÇOS${at}`:'Preços de referência SINAPI (padrão do painel)';}
   const fq=v=>v.toLocaleString('pt-BR',{maximumFractionDigits:2});
@@ -1186,7 +1190,7 @@ function calcCusto(mats){
   document.getElementById('custo-body').innerHTML=rows.map(r=>`<tr title="${esc(PRICE_SRC[r.mat]||'')}"><td>${esc(r.mat)}</td><td>${fq(r.qtd)} ${esc(r.un)}</td><td>${fmtBRL(r.price)}/${esc(r.un)}</td><td>${fmtBRL(r.cost)}</td></tr>`).join('');
   const skEl=document.getElementById('custo-skipped');
   skEl.style.display=sk.length?'':'none';
-  skEl.innerHTML=sk.length?`<summary>${sk.reduce((a,[,n])=>a+n,0)} lançamento(s) fora do total: unidade sem conversão para o preço</summary><ul>${sk.map(([k,n])=>`<li>${esc(k)} — ${n} lançamento(s)</li>`).join('')}</ul>`:'';
+  skEl.innerHTML=sk.length?`<summary>${pl(sk.reduce((a,[,n])=>a+n,0),'lançamento ficou','lançamentos ficaram')} fora do total porque a unidade não converte para a do preço</summary><ul>${sk.map(([k,n])=>`<li>${esc(k)}: ${pl(n,'lançamento','lançamentos')}</li>`).join('')}</ul>`:'';
 }
 
 // ═══════════ MATERIAIS ═══════════
@@ -1219,7 +1223,7 @@ function mkMatTipos(mats){
   const jobs={};mats.forEach(m=>{const key=`${fmtKey(m.date)}||${m.local}||${m.tipo}`;if(!jobs[key])jobs[key]=normType(m.tipo)||m.tipo;});
   const cnt={};Object.values(jobs).forEach(t=>{if(t)cnt[t]=(cnt[t]||0)+1;});
   const sorted=Object.entries(cnt).sort((a,b)=>b[1]-a[1]).slice(0,9);
-  hBar('mc-tipos',sorted,{tip:x=>`${x.raw} obra(s)`});
+  hBar('mc-tipos',sorted,{tip:x=>pl(x.raw,'obra','obras')});
 }
 function mkMatColab(mats){
   const c=T();
@@ -1282,10 +1286,10 @@ function renderMatTable(mats){
   const slice=rows.slice((mPage-1)*PER,mPage*PER);
   document.getElementById('mt-body').innerHTML=slice.length?slice.map(m=>{
     const cb=m.colab===5?'badge-blue':m.colab===4?'badge-amber':'badge-green';
-    return`<tr><td>${fmt(m.date)}</td><td style="max-width:200px;color:var(--t1)">${esc(m.local||'-')}</td><td style="max-width:220px">${esc(m.tipo||'-')}</td><td style="color:var(--t1);font-weight:500">${esc(m.material||'-')}</td><td style="text-align:right;color:var(--t1);font-weight:600;white-space:nowrap">${esc(m.rawQtd||'-')}</td><td style="color:var(--t3)">${esc(m.un||'-')}</td><td><span class="badge ${cb}">${m.colab||'-'} col.</span></td><td style="max-width:220px;color:var(--t3);font-size:11px;white-space:pre-line">${esc(m.obs||'-')}</td></tr>`;
+    return`<tr><td>${fmt(m.date)}</td><td style="max-width:200px;color:var(--t1)">${esc(txt(m.local))}</td><td style="max-width:220px">${esc(txt(m.tipo))}</td><td style="color:var(--t1);font-weight:500">${esc(txt(m.material))}</td><td style="text-align:right;color:var(--t1);font-weight:600;white-space:nowrap">${esc(txt(m.rawQtd))}</td><td style="color:var(--t3)">${esc(txt(m.un))}</td><td>${m.colab?`<span class="badge ${cb}">${m.colab} col.</span>`:''}</td><td style="max-width:220px;color:var(--t3);font-size:11px;white-space:pre-line">${esc(txt(m.obs))}</td></tr>`;
   }).join(''):`<tr><td colspan="8" style="text-align:center;color:var(--t3);padding:28px">Nenhum registro encontrado</td></tr>`;
   const s0=(mPage-1)*PER+1;
-  document.getElementById('mpg-info').textContent=`${total?s0:0}–${Math.min(mPage*PER,total)} de ${total}`;
+  document.getElementById('mpg-info').textContent=total?`${s0} a ${Math.min(mPage*PER,total)} de ${total}`:'Nenhum registro';
   document.getElementById('mpg-prev').disabled=mPage<=1;document.getElementById('mpg-next').disabled=mPage>=pages;
 }
 function exportMaterials(){
