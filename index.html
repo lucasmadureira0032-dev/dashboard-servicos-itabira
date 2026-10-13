@@ -111,6 +111,8 @@ main{padding:24px 28px;max-width:1600px;margin:0 auto;display:flex;flex-directio
 .leg-dot{width:9px;height:9px;border-radius:50%;}
 .leaflet-popup-content-wrapper{background:var(--s2);color:var(--t1);border:1px solid var(--border);border-radius:8px;box-shadow:0 8px 32px rgba(0,0,0,.5);}
 .leaflet-popup-tip{background:var(--s2);}
+/* Escurece os tiles do OSM no tema escuro */
+[data-theme="dark"] .leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) brightness(.9) contrast(.9) saturate(.6);}
 .leaflet-popup-content{margin:14px 16px;max-height:260px;overflow-y:auto;}
 .pop-addr{font-size:13px;font-weight:600;margin-bottom:4px;color:var(--t1);}
 .pop-count{font-size:11px;color:var(--accent);font-weight:600;margin-bottom:8px;}
@@ -432,10 +434,6 @@ function setTheme(dark,redraw){
   if(btn) btn.textContent=dark?'☀️':'🌙';
   GRID=dark?'#1c3560':'#c5d6e8';
   Chart.defaults.color=dark?'#8bacd4':'#2d4d70';
-  if(lMap&&tileLayer){
-    lMap.removeLayer(tileLayer);
-    tileLayer=L.tileLayer(dark?'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png':'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{attribution:'© OSM © CARTO',subdomains:'abcd',maxZoom:19}).addTo(lMap);
-  }
   if(redraw){
     [cDaily,cTypes,cMonthly,cWeekly,cRank,mcTop,mcTipos,mcColab,mcDaily,mcComp].filter(Boolean).forEach(c=>{
       if(c.config.options.scales) Object.values(c.config.options.scales).forEach(s=>{if(s.grid)s.grid.color=GRID;if(s.ticks)s.ticks.color=Chart.defaults.color;});
@@ -811,7 +809,8 @@ async function geocodeServices(services){
 // ═══════════ MAP ═══════════
 function initMap(svc){
   lMap=L.map('map',{zoomControl:true}).setView([-19.625,-43.22],13);
-  tileLayer=L.tileLayer(isDark?'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png':'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{attribution:'© OSM © CARTO',subdomains:'abcd',maxZoom:19}).addTo(lMap);
+  // Mapa base do OpenStreetMap (não exige chave). O tema escuro é feito por filtro CSS em .leaflet-tile-pane
+  tileLayer=L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>',maxZoom:19}).addTo(lMap);
   markersLg=L.layerGroup().addTo(lMap);renderMap(svc,true);
   window.addEventListener('resize',()=>lMap.invalidateSize());
 }
