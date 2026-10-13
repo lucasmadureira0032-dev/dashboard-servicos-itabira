@@ -493,6 +493,8 @@ const DEFAULT_PRICES={
   'Retroescavadeira': {p:161.36,u:'h',f:'SINAPI 5678 · CHP diurno'},
   'Caminhão Bascula': {p:304.70,u:'h',f:'SINAPI 91386 · CHP diurno (10 m³)'}
 };
+// Data da pesquisa dos preços acima. Um preço da aba PREÇOS só substitui o padrão se for desta data ou mais novo.
+const DEFAULT_PRICES_DATE='13/10/2026';
 let UNIT_PRICES={},PRICE_UNIT={},PRICE_SRC={};
 let PRICES_META={fonte:'padrão',atualizado:''};
 function resetPrices(){
@@ -809,10 +811,14 @@ async function loadData(){
     const csv4=await fetchSheet('PREÇOS');
     const priceRows=csvToObjects(csv4);
     let atualizado='',n=0;
+    const minDate=parseDMY(DEFAULT_PRICES_DATE);
     priceRows.forEach(r=>{
       const mat=normMat(col(r,'Material'));
       const val=parseBRL(col(r,'Preço Unitário (R$)','Preço Unitário','Preço'));
       if(!mat||isNaN(val)||val<=0)return;
+      // Vale a referência mais recente: linha com data anterior à pesquisa do painel fica de fora
+      const dt=parseDMY(col(r,'Atualizado em'));
+      if(dt&&DEFAULT_PRICES[mat]&&dt<minDate)return;
       UNIT_PRICES[mat]=val;n++;
       if(col(r,'Unidade'))PRICE_UNIT[mat]=normUnit(col(r,'Unidade'));
       if(col(r,'Fonte'))PRICE_SRC[mat]=col(r,'Fonte');
