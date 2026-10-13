@@ -137,6 +137,9 @@ main{padding:24px 28px 40px;max-width:1600px;margin:0 auto;display:flex;flex-dir
 .custo-table td{padding:5px 10px;color:var(--t2);border-top:1px solid var(--border);font-variant-numeric:tabular-nums;}
 .custo-table td:last-child,.custo-table th:last-child{text-align:right;}
 .custo-table td:last-child{font-weight:600;color:var(--t1);}
+.custo-skipped{margin-top:10px;font-size:11px;color:var(--t3);}
+.custo-skipped summary{cursor:pointer;color:var(--t2);}
+.custo-skipped ul{margin:6px 0 0 18px;display:flex;flex-direction:column;gap:2px;}
 
 /* PRICE EDITOR */
 .price-editor{background:var(--s1);border:1px solid var(--border);border-radius:12px;padding:20px;display:none;}
@@ -418,6 +421,7 @@ td.map-cell.none{opacity:.3;}
             <thead><tr><th>Material</th><th>Qtd</th><th>Preço unit.</th><th>Total</th></tr></thead>
             <tbody id="custo-body"></tbody>
           </table>
+          <details class="custo-skipped" id="custo-skipped" style="display:none"></details>
         </div>
       </div>
 
@@ -489,7 +493,8 @@ const DEFAULT_PRICES={
   'Manilha 40':       {p:139.02,u:'m',f:'SINAPI 7745 · média nacional · jul/2026'},
   'Meio-fio':         {p:47.35, u:'m',f:'SINAPI 41679 · MG · ago/2026'},
   'Trilho':           {p:520.00,u:'un',f:'Estimativa (sem item SINAPI equivalente)'},
-  'Perfil':           {p:180.00,u:'un',f:'Estimativa (sem item SINAPI equivalente)'},
+  'Perfil':           {p:64.49, u:'m',f:'SINAPI 568 (cantoneira de aço) · PA · mai/2026'},
+  'Tampão':           {p:404.70,u:'un',f:'SINAPI 6243 (tampão FoFo B125 600 mm) · MG · jun/2026'},
   'Retroescavadeira': {p:161.36,u:'h',f:'SINAPI 5678 · CHP diurno'},
   'Caminhão Bascula': {p:304.70,u:'h',f:'SINAPI 91386 · CHP diurno (10 m³)'}
 };
@@ -505,7 +510,7 @@ resetPrices();
 
 // ═══════════ CONVERSÃO DE UNIDADES ═══════════
 // Volume de referência dos recipientes usados nos lançamentos (ajuste se a equipe usar outro tamanho)
-const VOL_CARRINHO=0.06; // carrinho de mão de obra: 60 litros
+const VOL_CARRINHO=0.072; // carrinho de mão: 4 latas de 18 L (conversão usada pela equipe nas fichas)
 const VOL_LATA=0.018;    // lata de 18 litros
 // Peças vendidas por metro: comprimento padrão quando a observação não diz "X m cada"
 const DEFAULT_LEN={'Manilha 40':1,'Meio-fio':1};
@@ -516,7 +521,7 @@ const normUnit=u=>{
   if(/^m(2|²)$|^metros? quadrados?$/.test(s))return'm²';
   if(/^(m|metros?|ml)$/.test(s))return'm';
   if(/^(h|hs|hr|hora|horas)$/.test(s))return'h';
-  if(/^(un|und|unid|unidade|unidades|pc|pç|peca|pecas)$/.test(s))return'un';
+  if(/^(un|und|unid|unidade|unidades|pc|pç|peca|pecas|-|—|–)?$/.test(s))return'un';
   if(/^carrinhos?$/.test(s))return'carrinho';
   if(/^latas?$/.test(s))return'lata';
   if(/^sacos?$/.test(s))return'saco';
@@ -539,6 +544,15 @@ function qtyInPriceUnit(m,priceUnit){
   if(to==='m'&&from==='un'){const len=lengthFromObs(m.obs)??DEFAULT_LEN[m.material];return len!=null?q*len:null;}
   if(to==='m²'&&from==='un'&&AREA_UN[m.material])return q*AREA_UN[m.material];
   return null;
+}
+// Horas de equipamento anotadas na unidade de outro material, ex.: Terra · "caminhão/hr (4hr)" ou "retro/hr (8hr)"
+function equipmentUse(m){
+  const u=String(m.un||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  const h=u.match(/\((\d+(?:[.,]\d+)?)\s*h/);
+  if(!h)return m;
+  const eq=/caminh/.test(u)?'Caminhão Bascula':/retro/.test(u)?'Retroescavadeira':null;
+  if(!eq)return m;
+  return{...m,material:eq,un:'h',qtd:(m.qtd||1)*parseFloat(h[1].replace(',','.'))};
 }
 // "R$ 1.234,56" → 1234.56
 function parseBRL(s){
@@ -683,7 +697,11 @@ function parseQtd(s){
 }
 function normMat(m){
   if(!m)return'';
-  const MAP={'areia grossa':'Areia Grossa','cimento':'Cimento','grelha':'Grelha','brita':'Brita','bloquetes':'Bloquetes','trilho':'Trilho','cascalho de bica':'Cascalho de Bica','terra compactável':'Terra Compactável','manilha 40':'Manilha 40','quadro':'Quadro','pedras':'Pedras','retroescavadeira':'Retroescavadeira','caminhão bascula':'Caminhão Bascula','perfil':'Perfil','meio-fio':'Meio-fio'};
+  const MAP={'areia grossa':'Areia Grossa','cimento':'Cimento','grelha':'Grelha','brita':'Brita','bloquetes':'Bloquetes','trilho':'Trilho','cascalho de bica':'Cascalho de Bica','terra compactável':'Terra Compactável','manilha 40':'Manilha 40','quadro':'Quadro','pedras':'Pedras','retroescavadeira':'Retroescavadeira','caminhão bascula':'Caminhão Bascula','perfil':'Perfil','meio-fio':'Meio-fio',
+    // Variações de nome usadas nas fichas
+    'areia':'Areia Grossa','bloquete':'Bloquetes','grelhas':'Grelha','quadros':'Quadro','trilhos':'Trilho','terra':'Terra Compactável','terra compactavel':'Terra Compactável',
+    'perfil metálico':'Perfil','perfil metalico':'Perfil','caminhão basculante':'Caminhão Bascula','caminhao bascula':'Caminhão Bascula',
+    'tampão':'Tampão','tampao':'Tampão','tampão de ferro':'Tampão','tampão de ferro fundido':'Tampão','manilha':'Manilha 40','meio fio':'Meio-fio'};
   return MAP[m.trim().toLowerCase()]||(m.charAt(0).toUpperCase()+m.slice(1).toLowerCase());
 }
 function normType(t){
@@ -1150,10 +1168,11 @@ function exportServices(){
 function calcCusto(mats){
   const byMat={},skipped={};
   mats.filter(m=>m.material).forEach(m=>{
+    m=equipmentUse(m);
     const price=UNIT_PRICES[m.material];if(!price)return;
     const pu=PRICE_UNIT[m.material]||'un';
     const q=qtyInPriceUnit(m,pu);
-    if(q==null){const k=`${m.material} (${normUnit(m.un)||'sem unidade'})`;skipped[k]=(skipped[k]||0)+1;return;}
+    if(q==null){const k=`${m.material} (${String(m.un||'').trim().toLowerCase()||'sem unidade'})`;skipped[k]=(skipped[k]||0)+1;return;}
     (byMat[m.material]||(byMat[m.material]={qtd:0,un:pu,price})).qtd+=q;
   });
   let total=0;
@@ -1164,8 +1183,10 @@ function calcCusto(mats){
   if(fonteEl){const at=PRICES_META.atualizado?` · atualizado em ${PRICES_META.atualizado}`:'';fonteEl.textContent=PRICES_META.fonte==='planilha'?`Preços da aba PREÇOS${at}`:'Preços de referência SINAPI (padrão do painel)';}
   const fq=v=>v.toLocaleString('pt-BR',{maximumFractionDigits:2});
   const sk=Object.entries(skipped);
-  document.getElementById('custo-body').innerHTML=rows.map(r=>`<tr title="${esc(PRICE_SRC[r.mat]||'')}"><td>${esc(r.mat)}</td><td>${fq(r.qtd)} ${esc(r.un)}</td><td>${fmtBRL(r.price)}/${esc(r.un)}</td><td>${fmtBRL(r.cost)}</td></tr>`).join('')
-    +(sk.length?`<tr><td colspan="4" style="color:var(--t3);font-size:11px;padding-top:8px">Fora do total por falta de conversão de unidade: ${sk.map(([k,n])=>`${esc(k)} — ${n} lançamento(s)`).join('; ')}</td></tr>`:'');
+  document.getElementById('custo-body').innerHTML=rows.map(r=>`<tr title="${esc(PRICE_SRC[r.mat]||'')}"><td>${esc(r.mat)}</td><td>${fq(r.qtd)} ${esc(r.un)}</td><td>${fmtBRL(r.price)}/${esc(r.un)}</td><td>${fmtBRL(r.cost)}</td></tr>`).join('');
+  const skEl=document.getElementById('custo-skipped');
+  skEl.style.display=sk.length?'':'none';
+  skEl.innerHTML=sk.length?`<summary>${sk.reduce((a,[,n])=>a+n,0)} lançamento(s) fora do total: unidade sem conversão para o preço</summary><ul>${sk.map(([k,n])=>`<li>${esc(k)} — ${n} lançamento(s)</li>`).join('')}</ul>`:'';
 }
 
 // ═══════════ MATERIAIS ═══════════
@@ -1239,7 +1260,7 @@ function renderPriceEditor(){
   const src=PRICES_META.fonte==='planilha'
     ?`<p class="price-note">${ico('circle-check')}Preços carregados da aba <strong>PREÇOS</strong> da planilha${PRICES_META.atualizado?' ('+esc(PRICES_META.atualizado)+')':''}. Edições abaixo valem só nesta sessão.</p>`
     :`<p class="price-note">${ico('info')}Usando os preços de referência do painel. Para atualizar permanentemente, edite a aba <strong>PREÇOS</strong> na planilha Google Sheets.</p>`;
-  const note=`<p class="price-note">${ico('ruler')}Conversões: 1 carrinho = ${VOL_CARRINHO*1000} L, 1 lata = ${VOL_LATA*1000} L, 1 saco de cimento = 50 kg; peças por metro usam o comprimento escrito na observação ("1,30 m cada").</p>`;
+  const note=`<p class="price-note">${ico('ruler')}Conversões: 1 carrinho = ${Math.round(VOL_CARRINHO*1000)} L (4 latas), 1 lata = ${VOL_LATA*1000} L, 1 saco de cimento = 50 kg; peças por metro usam o comprimento escrito na observação ("1,30 m cada").</p>`;
   grid.innerHTML=src+note+Object.entries(UNIT_PRICES).map(([mat,price])=>`
     <div class="price-row" title="${esc(PRICE_SRC[mat]||'')}">
       <span class="price-name">${esc(mat)}<br><small style="color:var(--t3);font-size:10px">${esc(PRICE_SRC[mat]||'')}</small></span>
