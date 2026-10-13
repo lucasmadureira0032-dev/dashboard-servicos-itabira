@@ -111,7 +111,20 @@ main{padding:24px 28px;max-width:1600px;margin:0 auto;display:flex;flex-directio
 .leg-dot{width:9px;height:9px;border-radius:50%;}
 .leaflet-popup-content-wrapper{background:var(--s2);color:var(--t1);border:1px solid var(--border);border-radius:8px;box-shadow:0 8px 32px rgba(0,0,0,.5);}
 .leaflet-popup-tip{background:var(--s2);}
-.leaflet-popup-content{margin:14px 16px;}
+.leaflet-popup-content{margin:14px 16px;max-height:260px;overflow-y:auto;}
+.pop-addr{font-size:13px;font-weight:600;margin-bottom:4px;color:var(--t1);}
+.pop-count{font-size:11px;color:var(--accent);font-weight:600;margin-bottom:8px;}
+.pop-item{padding:6px 0;border-top:1px solid var(--border);}
+.pop-item:first-of-type{border-top:none;padding-top:0;}
+.pop-date{font-size:11px;color:var(--t3);}
+.pop-tipo{font-size:12px;color:var(--t2);}
+.map-cluster{display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(52,211,153,.85);border:2px solid rgba(0,0,0,.35);color:#062b1e;font-weight:700;font-size:11px;}
+
+/* FILTROS DE SERVIÇOS */
+.filter-bar{background:var(--s1);border:1px solid var(--border);border-radius:12px;padding:14px 18px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.filter-bar .search-box{flex:1 1 160px;min-width:140px;}
+.filter-bar select.search-box{flex:0 1 200px;}
+.filter-count{font-size:11px;color:var(--accent);font-weight:600;white-space:nowrap;}
 
 /* TABLE */
 .table-panel{background:var(--s1);border:1px solid var(--border);border-radius:12px;padding:20px;}
@@ -157,6 +170,33 @@ tbody td:first-child{color:var(--t1);white-space:nowrap;}
 [data-theme="light"] .alerta-item{background:rgba(248,113,113,.04);border-color:rgba(248,113,113,.25);}
 [data-theme="light"] .alerta-ok{background:rgba(52,211,153,.06);border-color:rgba(52,211,153,.3);}
 
+/* RESPONSIVO */
+@media (max-width:1100px){
+  .kpi-row{grid-template-columns:repeat(2,1fr);}
+  .row2,.row3{grid-template-columns:1fr;}
+  .logo h1{white-space:normal;font-size:13px;line-height:1.25;}
+  .logo{flex-shrink:1;min-width:0;}
+  header{height:auto;min-height:64px;padding:8px 16px;flex-wrap:wrap;}
+  #last-updated{display:none;}
+}
+@media (max-width:640px){
+  main{padding:16px;gap:14px;}
+  .kpi-row{gap:10px;}
+  .kpi{padding:14px 16px;}
+  .kpi-val{font-size:28px;}
+  .custo-val{font-size:28px;}
+  .custo-breakdown{min-width:0;width:100%;}
+  .tab-nav{order:3;width:100%;justify-content:center;}
+  .hdr-actions{margin-left:auto;}
+  .icon-btn .lbl{display:none;}
+  .pb-sep{display:none;}
+  .pb-info{margin-left:0;}
+  .pb-date{width:128px;}
+  .filter-bar select.search-box,.table-filters select.search-box{flex:1 1 100%;width:100%!important;}
+  #map{height:320px;}
+  .panel-head{flex-wrap:wrap;gap:6px;}
+}
+
 /* PRINT */
 @media print{
   header .tab-nav,header .hdr-actions{display:none!important;}
@@ -185,8 +225,8 @@ tbody td:first-child{color:var(--t1);white-space:nowrap;}
     </div>
     <div class="hdr-actions">
       <span style="font-size:11px;color:#aac3e0;white-space:nowrap;" id="last-updated"></span>
-      <button class="icon-btn" id="btn-refresh">🔄 Atualizar</button>
-      <button class="icon-btn" onclick="window.print()">🖨️ Exportar PDF</button>
+      <button class="icon-btn" id="btn-refresh">🔄 <span class="lbl">Atualizar</span></button>
+      <button class="icon-btn" onclick="window.print()">🖨️ <span class="lbl">Exportar PDF</span></button>
       <button class="icon-btn" id="theme-toggle">☀️</button>
     </div>
   </header>
@@ -212,16 +252,26 @@ tbody td:first-child{color:var(--t1);white-space:nowrap;}
         <span class="pb-info" id="svc-period-info"></span>
       </div>
 
+      <div class="filter-bar">
+        <span class="pb-label">Filtros:</span>
+        <input type="text" class="search-box" id="q-search" placeholder="Buscar por endereço, tipo ou observação…">
+        <select class="search-box" id="f-tipo"><option value="">Todos os tipos de serviço</option></select>
+        <select class="search-box" id="f-rua"><option value="">Todos os endereços</option></select>
+        <select class="search-box" id="q-source" style="flex:0 1 160px;"><option value="">Todas as origens</option><option value="formulario">Formulário</option><option value="planilha">Planilha</option></select>
+        <button class="pill pill-clear" id="f-clear" style="display:none">✕ Limpar filtros</button>
+        <span class="filter-count" id="f-count"></span>
+      </div>
+
       <div class="kpi-row">
         <div class="kpi" style="--kpi-color:var(--accent)"><div class="kpi-label">Total de Serviços</div><div class="kpi-val" id="k-total">-</div><div class="kpi-sub">No período selecionado</div><div class="kpi-icon">🔧</div></div>
-        <div class="kpi" style="--kpi-color:var(--green)"><div class="kpi-label">Executados</div><div class="kpi-val" id="k-done">-</div><div class="kpi-sub" id="k-done-pct">-</div><div class="kpi-icon">✅</div></div>
+        <div class="kpi" style="--kpi-color:var(--green)"><div class="kpi-label">Média por dia trabalhado</div><div class="kpi-val" id="k-avg">-</div><div class="kpi-sub" id="k-days">-</div><div class="kpi-icon">📈</div></div>
         <div class="kpi" style="--kpi-color:#63B3ED"><div class="kpi-label">Serviços esta semana</div><div class="kpi-val" id="k-week">-</div><div class="kpi-sub">Últimos 7 dias</div><div class="kpi-icon">📅</div></div>
         <div class="kpi" style="--kpi-color:var(--purple)"><div class="kpi-label">Endereços únicos</div><div class="kpi-val" id="k-addr">-</div><div class="kpi-sub">Locais atendidos</div><div class="kpi-icon">📍</div></div>
       </div>
 
       <div class="row2">
         <div class="panel" style="height:280px;"><div class="panel-head"><span class="panel-title">Serviços por Dia</span><span class="panel-sub" id="badge-p">-</span></div><div class="chart-wrap"><canvas id="c-daily"></canvas></div></div>
-        <div class="panel" style="height:280px;"><div class="panel-head"><span class="panel-title">Tipos de Serviço</span></div><div class="chart-wrap"><canvas id="c-types"></canvas></div></div>
+        <div class="panel" style="height:280px;"><div class="panel-head"><span class="panel-title">Tipos de Serviço</span><span class="panel-sub">Clique numa barra para filtrar</span></div><div class="chart-wrap"><canvas id="c-types"></canvas></div></div>
       </div>
 
       <div class="row2">
@@ -230,7 +280,7 @@ tbody td:first-child{color:var(--t1);white-space:nowrap;}
       </div>
 
       <div class="panel" style="height:300px;">
-        <div class="panel-head"><span class="panel-title">Top 10 Endereços com Mais Serviços</span><span class="panel-sub">Ranking do período</span></div>
+        <div class="panel-head"><span class="panel-title">Top 10 Endereços com Mais Serviços</span><span class="panel-sub">Ranking do período · clique numa barra para filtrar</span></div>
         <div class="chart-wrap"><canvas id="c-ranking"></canvas></div>
       </div>
 
@@ -245,18 +295,15 @@ tbody td:first-child{color:var(--t1);white-space:nowrap;}
         <div id="map"></div>
         <div id="geocode-status" style="display:none;font-size:11px;color:var(--t3);padding:6px 2px;"></div>
         <div class="map-legend">
-          <div class="leg-item"><div class="leg-dot" style="background:var(--green)"></div>Executado</div>
+          <div class="leg-item" id="map-count"></div>
+          <div class="leg-item"><div class="leg-dot" style="background:var(--green)"></div>Serviço</div>
+          <div class="leg-item"><div class="map-cluster" style="width:16px;height:16px;font-size:8px;">3</div>Vários serviços no mesmo local</div>
         </div>
       </div>
 
       <div class="table-panel">
-        <div class="panel-head" style="margin-bottom:14px;"><span class="panel-title">Lista de Serviços</span></div>
-        <div class="table-filters">
-          <input type="text" class="search-box" id="q-search" placeholder="Buscar por endereço, tipo ou observação…">
-          <select class="search-box" id="q-status" style="flex:none;width:160px;"><option value="">Todos os status</option><option value="Executado">Executado</option><option value="Em andamento">Em andamento</option></select>
-          <select class="search-box" id="q-source" style="flex:none;width:150px;"><option value="">Todas as fontes</option><option value="formulario">Formulário</option><option value="planilha">Planilha</option></select>
-        </div>
-        <div class="tbl-wrap"><table><thead><tr><th>Data</th><th>Endereço</th><th>Tipo de Serviço</th><th>Status</th><th>Origem</th><th>Observações</th></tr></thead><tbody id="t-body"></tbody></table></div>
+        <div class="panel-head" style="margin-bottom:14px;"><span class="panel-title">Lista de Serviços</span><span class="panel-sub">Segue os filtros acima</span></div>
+        <div class="tbl-wrap"><table><thead><tr><th>Data</th><th>Endereço</th><th>Tipo de Serviço</th><th>Origem</th><th>Observações</th></tr></thead><tbody id="t-body"></tbody></table></div>
         <div class="pagination"><button class="pg-btn" id="pg-prev">← Anterior</button><div class="pg-info" id="pg-info">-</div><button class="pg-btn" id="pg-next">Próximo →</button></div>
       </div>
     </main>
@@ -408,18 +455,39 @@ const fmt=d=>d?d.toLocaleDateString('pt-BR'):'-';
 const fmtS=d=>d?d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'}):'';
 const fmtKey=d=>d?fmtS(d)+'/'+d.getFullYear().toString().slice(2):'';
 const fmtBRL=v=>v.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+// Escapa texto vindo da planilha/formulário antes de inserir no HTML
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
+const inItabira=(la,ln)=>la>-20.5&&la<-19&&ln>-44&&ln<-42.5;
 function parseCoords(s){
   if(!s||s==='N/A')return null;
-  const m=String(s).trim().match(/(-?\d+\.?\d*)\s*[,\s]\s*(-?\d+\.?\d*)/);
-  if(!m)return null;
-  const la=parseFloat(m[1]),ln=parseFloat(m[2]);
-  return(la>-20.5&&la<-19&&ln>-44&&ln<-42.5)?{lat:la,lng:ln}:null;
+  s=String(s).trim();
+  // Link do Google Maps: ...@-19.62,-43.22... ou ?q=-19.62,-43.22
+  const link=s.match(/[@=](-?\d+\.\d+),\s*(-?\d+\.\d+)/);
+  let nums;
+  if(link)nums=[link[1],link[2]];
+  else{
+    // Aceita "-19.62, -43.22", "-19.62 -43.22", "-19,62; -43,22" e "-19,62 -43,22"
+    nums=s.match(/-?\d+(?:[.,]\d+)?/g);
+    if(!nums||nums.length<2)return null;
+    if(nums.length>2){
+      // "-19,6234, -43,2245" → separador decimal vírgula quebrado em 4 partes
+      const m=s.match(/(-?\d+)[,.](\d+)\s*[,;\s]\s*(-?\d+)[,.](\d+)/);
+      if(!m)return null;
+      nums=[`${m[1]}.${m[2]}`,`${m[3]}.${m[4]}`];
+    }
+  }
+  const a=parseFloat(String(nums[0]).replace(',','.')),b=parseFloat(String(nums[1]).replace(',','.'));
+  if(inItabira(a,b))return{lat:a,lng:b};
+  if(inItabira(b,a))return{lat:b,lng:a}; // lat/lng invertidos
+  return null;
 }
 function parseQtd(s){
-  if(!s)return 0;s=String(s).trim();
-  if(s.includes('/'))return parseFloat(s)/1;
-  return parseFloat(s.replace(',','.'))||0;
+  if(!s)return 0;s=String(s).trim().replace(',','.');
+  // "1 1/2" → 1.5 ; "1/2" → 0.5
+  const fr=s.match(/^(?:(\d+(?:\.\d+)?)\s+)?(\d+(?:\.\d+)?)\s*\/\s*(\d+(?:\.\d+)?)/);
+  if(fr){const den=parseFloat(fr[3]);return den?(parseFloat(fr[1]||0)+parseFloat(fr[2])/den):0;}
+  return parseFloat(s)||0;
 }
 function normMat(m){
   if(!m)return'';
@@ -447,37 +515,48 @@ function extractStreet(addr){
   const normalized=clean.toLowerCase().replace(/(?:^|\s)\S/g,c=>c.toUpperCase());
   return normalized.length>45?normalized.slice(0,43)+'…':normalized;
 }
+// Semana ISO 8601 (segunda a domingo); o ano da semana pode diferir do ano civil
 function isoWeek(d){
-  const jan1=new Date(d.getFullYear(),0,1);
-  return Math.ceil(((d-jan1)/86400000+jan1.getDay()+1)/7);
+  const t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));
+  const day=t.getUTCDay()||7;
+  t.setUTCDate(t.getUTCDate()+4-day);
+  const y=t.getUTCFullYear();
+  return{year:y,week:Math.ceil(((t-Date.UTC(y,0,1))/86400000+1)/7)};
 }
 
 // ═══════════ CSV UTILS ═══════════
+// Parser caractere a caractere: suporta quebras de linha dentro de campos entre aspas
 function parseCSVRaw(text){
-  const rows=[];
-  for(const line of text.trim().split('\n')){
-    const row=[];let cur='',inQ=false;
-    for(let i=0;i<line.length;i++){
-      const ch=line[i];
-      if(ch==='"'){if(inQ&&line[i+1]==='"'){cur+='"';i++;}else{inQ=!inQ;}}
-      else if(ch===','&&!inQ){row.push(cur);cur='';}
-      else{cur+=ch;}
-    }
-    row.push(cur);
-    rows.push(row);
+  const rows=[];let row=[],cur='',inQ=false;
+  for(let i=0;i<text.length;i++){
+    const ch=text[i];
+    if(inQ){
+      if(ch==='"'){if(text[i+1]==='"'){cur+='"';i++;}else inQ=false;}
+      else cur+=ch;
+    }else if(ch==='"')inQ=true;
+    else if(ch===','){row.push(cur);cur='';}
+    else if(ch==='\n'||ch==='\r'){
+      if(ch==='\r'&&text[i+1]==='\n')i++;
+      row.push(cur);cur='';
+      if(row.some(c=>c!==''))rows.push(row);
+      row=[];
+    }else cur+=ch;
   }
+  row.push(cur);
+  if(row.some(c=>c!==''))rows.push(row);
   return rows;
 }
-function parseCSV(text){
-  return parseCSVRaw(text).map(row=>row.map(c=>c.trim()));
-}
+// Normaliza nomes de coluna (o Google Forms deixa espaços sobrando no fim)
+const normHdr=h=>String(h).replace(/\s+/g,' ').trim().toLowerCase();
 function csvToObjects(text){
   const raw=parseCSVRaw(text);if(raw.length<2)return[];
-  const headers=raw[0]; // preserva espaços dos nomes do Google Forms
+  const headers=raw[0].map(normHdr);
   return raw.slice(1).map(r=>{
-    const o={};headers.forEach((h,i)=>{o[h]=(r[i]??'').trim();});return o;
+    const o={};headers.forEach((h,i)=>{if(!(h in o)||!o[h])o[h]=(r[i]??'').trim();});return o;
   });
 }
+// Lê o primeiro campo não vazio entre os nomes de coluna informados
+const col=(o,...names)=>{for(const n of names){const v=o[normHdr(n)];if(v)return v;}return'';};
 async function fetchSheet(name){
   const url=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(name)}`;
   const r=await fetch(url);
@@ -501,16 +580,18 @@ async function loadData(){
   // Entradas sem carimbo = vieram da planilha antiga; com carimbo = formulário
   // Quando não há coordenadas, o geocodeServices() usa o endereço automaticamente
   csvToObjects(csvResp).forEach(r=>{
-    const d=parseDMY(r['1. Data do serviço ']);if(!d)return;
-    const coords=parseCoords(r['5. Coordenadas geográficas  ']||r['Column 11']);
-    const endereco=r['4. Endereço aproximado ']||r['Endereço Aproximado']||'';
-    const source=r['Carimbo de data/hora']?'formulario':'planilha';
-    services.push({date:d,coords,endereco,status:'Executado',tipo:r['2. Tipo de serviço ']||'Serviço de campo',obs:r['8. Observações  ']||'',source});
+    const d=parseDMY(col(r,'1. Data do serviço'));if(!d)return;
+    const coords=parseCoords(col(r,'5. Coordenadas geográficas','Coordenadas geográficas','Column 11'));
+    const endereco=col(r,'4. Endereço aproximado','Endereço Aproximado');
+    const source=col(r,'Carimbo de data/hora')?'formulario':'planilha';
+    const tipo=col(r,'2. Tipo de serviço')||'Serviço de campo';
+    const cats=[...new Set(tipo.split(',').map(normType).filter(Boolean))];
+    services.push({date:d,coords,endereco,rua:extractStreet(endereco),tipo,cats,obs:col(r,'8. Observações'),source});
   });
 
   const matRows=csvToObjects(csvMat);
-  const materials=matRows.map(r=>({date:parseDMY(r['Data']),material:normMat(r['Material']||''),qtd:parseQtd(r['Quantidade']),un:r['Unidade']||'',tipo:r['Tipo de serviço']||''})).filter(r=>r.material&&r.date);
-  const matFull=matRows.map(r=>({date:parseDMY(r['Data']),local:(r['Local']||'').toLowerCase().replace(/(?:^|\s)\S/g,c=>c.toUpperCase()),tipo:r['Tipo de serviço']||'',material:normMat(r['Material']||''),rawMat:r['Material']||'',qtd:parseQtd(r['Quantidade']),rawQtd:r['Quantidade']||'',un:r['Unidade']||'',obs:r['Observação']||'',colab:parseInt(r['Colaboradores envolvidos'])||0})).filter(r=>r.date);
+  const materials=matRows.map(r=>({date:parseDMY(col(r,'Data')),material:normMat(col(r,'Material')),qtd:parseQtd(col(r,'Quantidade')),un:col(r,'Unidade'),tipo:col(r,'Tipo de serviço')})).filter(r=>r.material&&r.date);
+  const matFull=matRows.map(r=>({date:parseDMY(col(r,'Data')),local:col(r,'Local').toLowerCase().replace(/(?:^|\s)\S/g,c=>c.toUpperCase()),tipo:col(r,'Tipo de serviço'),material:normMat(col(r,'Material')),rawMat:col(r,'Material'),qtd:parseQtd(col(r,'Quantidade')),rawQtd:col(r,'Quantidade'),un:col(r,'Unidade'),obs:col(r,'Observação'),colab:parseInt(col(r,'Colaboradores envolvidos'))||0})).filter(r=>r.date);
 
   // PREÇOS — aba opcional, usa padrões se não existir
   UNIT_PRICES={...DEFAULT_PRICES};
@@ -520,11 +601,11 @@ async function loadData(){
     const priceRows=csvToObjects(csv4);
     let fonte='',atualizado='';
     priceRows.forEach(r=>{
-      const mat=normMat(r['Material']||'');
-      const val=parseFloat((r['Preço Unitário (R$)']||'').replace(',','.'));
+      const mat=normMat(col(r,'Material'));
+      const val=parseFloat(col(r,'Preço Unitário (R$)').replace(',','.'));
       if(mat&&!isNaN(val)&&val>0)UNIT_PRICES[mat]=val;
-      if(r['Fonte']&&!fonte)fonte=r['Fonte'];
-      if(r['Atualizado em']&&!atualizado)atualizado=r['Atualizado em'];
+      if(col(r,'Fonte')&&!fonte)fonte=col(r,'Fonte');
+      if(col(r,'Atualizado em')&&!atualizado)atualizado=col(r,'Atualizado em');
     });
     PRICES_META={fonte:fonte||'planilha',atualizado};
   }catch(e){/* aba PREÇOS não existe ainda — usando valores padrão */}
@@ -547,11 +628,32 @@ function applyPeriodSvc(svc){
   if(period==='prev'){const p=new Date(now.getFullYear(),now.getMonth()-1,1);return svc.filter(s=>s.date.getMonth()===p.getMonth()&&s.date.getFullYear()===p.getFullYear());}
   return svc;
 }
-function applySearch(svc){
-  const q=(document.getElementById('q-search').value||'').toLowerCase();
-  const st=document.getElementById('q-status').value;
+// Filtros da barra de serviços — valem para KPIs, gráficos, mapa e tabela
+function applyFilters(svc){
+  const q=(document.getElementById('q-search').value||'').trim().toLowerCase();
+  const tp=document.getElementById('f-tipo').value;
+  const rua=document.getElementById('f-rua').value;
   const sr=document.getElementById('q-source').value;
-  return svc.filter(s=>{const mq=!q||[s.endereco,s.tipo,s.obs].join(' ').toLowerCase().includes(q);return mq&&(!st||s.status===st)&&(!sr||s.source===sr);});
+  const active=[q,tp,rua,sr].filter(Boolean).length;
+  document.getElementById('f-clear').style.display=active?'':'none';
+  document.getElementById('f-count').textContent=active?`${active} filtro(s) ativo(s)`:'';
+  return svc.filter(s=>(!q||[s.endereco,s.tipo,s.obs].join(' ').toLowerCase().includes(q))&&(!tp||s.cats.includes(tp))&&(!rua||s.rua===rua)&&(!sr||s.source===sr));
+}
+// Preenche os selects de tipo e endereço mantendo a seleção atual
+function fillServiceFilters(){
+  const fill=(id,values,allLabel)=>{
+    const sel=document.getElementById(id),cur=sel.value;
+    sel.innerHTML=`<option value="">${allLabel}</option>`+values.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join('');
+    sel.value=values.includes(cur)?cur:'';
+  };
+  const cnt=(key)=>{const c={};DATA.services.forEach(s=>[].concat(s[key]).forEach(v=>{if(v)c[v]=(c[v]||0)+1;}));return Object.keys(c).sort((a,b)=>c[b]-c[a]||a.localeCompare(b,'pt-BR'));};
+  fill('f-tipo',cnt('cats'),'Todos os tipos de serviço');
+  fill('f-rua',cnt('rua').sort((a,b)=>a.localeCompare(b,'pt-BR')),'Todos os endereços');
+}
+function setFilter(id,value){
+  const sel=document.getElementById(id);
+  sel.value=sel.value===value?'':value; // clicar de novo na mesma barra remove o filtro
+  setTimeout(update,0); // fora do handler do Chart.js, que destrói e recria o gráfico
 }
 function applyMatPeriodFull(){
   const now=new Date();let mats=DATA.matFull;
@@ -575,14 +677,14 @@ function applyMatSearch(mats){
 
 // ═══════════ KPIs SERVIÇOS ═══════════
 function updateKPIs(svc){
-  const tot=svc.length,done=svc.filter(s=>s.status==='Executado').length;
-  const pct=tot?Math.round(done/tot*100):0;
+  const tot=svc.length;
+  const days=new Set(svc.map(s=>fmtKey(s.date))).size;
   const now=new Date(),wk=new Date(now);wk.setDate(now.getDate()-7);
   const weekCount=svc.filter(s=>s.date>=wk).length;
-  const uniqAddr=new Set(svc.map(s=>extractStreet(s.endereco)).filter(Boolean)).size;
+  const uniqAddr=new Set(svc.map(s=>s.rua).filter(Boolean)).size;
   document.getElementById('k-total').textContent=tot;
-  document.getElementById('k-done').textContent=done;
-  document.getElementById('k-done-pct').textContent=`${pct}% de conclusão`;
+  document.getElementById('k-avg').textContent=days?(tot/days).toLocaleString('pt-BR',{maximumFractionDigits:1}):'0';
+  document.getElementById('k-days').textContent=`${days} dia(s) com serviço`;
   document.getElementById('k-week').textContent=weekCount;
   document.getElementById('k-addr').textContent=uniqAddr;
   const fmtM=d=>d.toLocaleDateString('pt-BR',{month:'long',year:'2-digit'}).replace(' de ','/');
@@ -600,15 +702,16 @@ function mkDaily(svc){
   cDaily=new Chart(document.getElementById('c-daily'),{type:'bar',data:{labels:pts.map(p=>p[0]),datasets:[{data:pts.map(p=>map[p[0]]),backgroundColor:'rgba(245,168,0,.7)',borderColor:'#F5A800',borderWidth:1,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:GRID},ticks:{font:{size:10}}},y:{grid:{color:GRID},beginAtZero:true,ticks:{precision:0}}}}});
 }
 function mkTypes(svc){
-  const cnt={};svc.forEach(s=>s.tipo.split(',').forEach(t=>{const k=normType(t);if(k)cnt[k]=(cnt[k]||0)+1;}));
+  const cnt={};svc.forEach(s=>s.cats.forEach(k=>{cnt[k]=(cnt[k]||0)+1;}));
   const sorted=Object.entries(cnt).sort((a,b)=>b[1]-a[1]).slice(0,8);
   if(cTypes)cTypes.destroy();
-  cTypes=new Chart(document.getElementById('c-types'),{type:'bar',data:{labels:sorted.map(([k])=>k),datasets:[{data:sorted.map(([,v])=>v),backgroundColor:PAL,borderRadius:4}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:GRID},ticks:{precision:0}},y:{grid:{color:'transparent'},ticks:{font:{size:10}}}}}});
+  cTypes=new Chart(document.getElementById('c-types'),{type:'bar',data:{labels:sorted.map(([k])=>k),datasets:[{data:sorted.map(([,v])=>v),backgroundColor:PAL,borderRadius:4}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,onClick:(e,els)=>{if(els.length)setFilter('f-tipo',sorted[els[0].index][0]);},onHover:(e,els)=>{e.native.target.style.cursor=els.length?'pointer':'default';},plugins:{legend:{display:false}},scales:{x:{grid:{color:GRID},ticks:{precision:0}},y:{grid:{color:'transparent'},ticks:{font:{size:10}}}}}});
 }
 function mkWeekly(svc){
   const wks={};
-  svc.forEach(s=>{const w=isoWeek(s.date);const k=`S${String(w).padStart(2,'0')}/${s.date.getFullYear().toString().slice(2)}`;wks[k]=(wks[k]||0)+1;});
-  const sorted=Object.entries(wks).sort();
+  svc.forEach(s=>{const{year,week}=isoWeek(s.date);const k=`${year}-${String(week).padStart(2,'0')}`;wks[k]=(wks[k]||0)+1;});
+  // Chave "AAAA-SS" ordena corretamente na virada do ano; o rótulo exibido é "SSS/AA"
+  const sorted=Object.entries(wks).sort((a,b)=>a[0].localeCompare(b[0])).map(([k,v])=>[`S${k.slice(5)}/${k.slice(2,4)}`,v]);
   if(cWeekly)cWeekly.destroy();
   cWeekly=new Chart(document.getElementById('c-weekly'),{type:'line',data:{labels:sorted.map(([k])=>k),datasets:[{data:sorted.map(([,v])=>v),borderColor:'#F5A800',backgroundColor:'rgba(245,168,0,.12)',fill:true,tension:0.4,pointRadius:5,pointBackgroundColor:'#F5A800',pointBorderColor:'#0e1f3a',pointBorderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.raw} serviço(s) na semana`}}},scales:{x:{grid:{color:GRID},ticks:{font:{size:10}}},y:{grid:{color:GRID},beginAtZero:true,ticks:{precision:0}}}}});
 }
@@ -623,67 +726,132 @@ function mkMonthly(svc){
 }
 function mkRanking(svc){
   const cnt={};
-  svc.forEach(s=>{const addr=extractStreet(s.endereco);if(addr)cnt[addr]=(cnt[addr]||0)+1;});
+  svc.forEach(s=>{if(s.rua)cnt[s.rua]=(cnt[s.rua]||0)+1;});
   const sorted=Object.entries(cnt).sort((a,b)=>b[1]-a[1]).slice(0,10);
   if(cRank)cRank.destroy();
-  cRank=new Chart(document.getElementById('c-ranking'),{type:'bar',data:{labels:sorted.map(([k])=>k),datasets:[{data:sorted.map(([,v])=>v),backgroundColor:PAL.map(c=>c+'bb'),borderRadius:4}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.raw} serviço(s)`}}},scales:{x:{grid:{color:GRID},ticks:{precision:0}},y:{grid:{color:'transparent'},ticks:{font:{size:10}}}}}});
+  cRank=new Chart(document.getElementById('c-ranking'),{type:'bar',data:{labels:sorted.map(([k])=>k),datasets:[{data:sorted.map(([,v])=>v),backgroundColor:PAL.map(c=>c+'bb'),borderRadius:4}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,onClick:(e,els)=>{if(els.length)setFilter('f-rua',sorted[els[0].index][0]);},onHover:(e,els)=>{e.native.target.style.cursor=els.length?'pointer':'default';},plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.raw} serviço(s)`}}},scales:{x:{grid:{color:GRID},ticks:{precision:0}},y:{grid:{color:'transparent'},ticks:{font:{size:10}}}}}});
 }
 
 // ═══════════ GEOCODING ═══════════
-const GEO_CACHE_KEY='itabira-geocache-v1';
+// Cache: endereço → {lat,lng} quando achado, ou {miss:timestamp} quando não achado.
+// Endereços não encontrados são tentados de novo depois de GEO_RETRY_MS.
+const GEO_CACHE_KEY='itabira-geocache-v2';
+const GEO_RETRY_MS=7*86400000;
 let geoCache={};
 try{geoCache=JSON.parse(localStorage.getItem(GEO_CACHE_KEY)||'{}');}catch(e){}
+let geoRunning=false;
+const saveGeoCache=()=>{try{localStorage.setItem(GEO_CACHE_KEY,JSON.stringify(geoCache));}catch(e){}};
+const geoKey=addr=>addr.trim().toLowerCase().replace(/\s+/g,' ');
+function geoCached(addr){
+  const c=geoCache[geoKey(addr)];
+  if(!c)return undefined;
+  if(c.miss)return Date.now()-c.miss<GEO_RETRY_MS?null:undefined;
+  return c;
+}
 
+async function nominatim(q){
+  // Respeita o limite de 1 requisição/segundo do Nominatim
+  await new Promise(r=>setTimeout(r,1100));
+  const url=`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=1&countrycodes=br&viewbox=-43.35,-19.55,-43.10,-19.75&bounded=1`;
+  const res=await fetch(url);
+  if(!res.ok)throw new Error(`Nominatim ${res.status}`);
+  const data=await res.json();
+  if(!data[0])return null;
+  const la=parseFloat(data[0].lat),ln=parseFloat(data[0].lon);
+  return inItabira(la,ln)?{lat:la,lng:ln}:null;
+}
 async function geocodeOne(addr){
-  const key=addr.trim().toLowerCase();
-  if(key in geoCache)return geoCache[key];
+  const cached=geoCached(addr);
+  if(cached!==undefined)return cached;
+  const base=addr.replace(/\b(itabira|mg|minas gerais|brasil)\b/gi,'').replace(/[,\s-]+$/,'').trim();
+  const parts=base.split(/[,;\-–]/).map(p=>p.trim()).filter(Boolean);
+  // Tenta do mais específico ao mais genérico: endereço completo, rua + bairro, só a rua
+  const tries=[...new Set([base,parts.length>2?`${parts[0]}, ${parts[parts.length-1]}`:'',parts[0]].filter(Boolean))];
   try{
-    await new Promise(r=>setTimeout(r,1150));
-    const q=addr.toLowerCase().includes('itabira')?addr:addr+', Itabira, MG, Brasil';
-    const url=`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=1&countrycodes=br&viewbox=-43.35,-19.55,-43.10,-19.75&bounded=1`;
-    const res=await fetch(url,{headers:{'User-Agent':'Dashboard-Servicos-Itabira/1.0'}});
-    const data=await res.json();
-    const coords=data[0]?{lat:parseFloat(data[0].lat),lng:parseFloat(data[0].lon)}:null;
-    geoCache[key]=coords;
-    localStorage.setItem(GEO_CACHE_KEY,JSON.stringify(geoCache));
-    return coords;
-  }catch(e){geoCache[key]=null;return null;}
+    for(const t of tries){
+      const coords=await nominatim(`${t}, Itabira, MG, Brasil`);
+      if(coords){geoCache[geoKey(addr)]=coords;saveGeoCache();return coords;}
+    }
+    geoCache[geoKey(addr)]={miss:Date.now()};saveGeoCache();
+    return null;
+  }catch(e){return null;} // falha de rede: não grava no cache, tenta na próxima carga
 }
 
 async function geocodeServices(services){
-  const toGeo=services.filter(s=>!s.coords&&s.endereco);
-  if(!toGeo.length)return;
+  // Aplica o que já está em cache e agrupa os endereços que faltam (cada endereço é consultado uma vez só)
+  const pending={};
+  services.forEach(s=>{
+    if(s.coords||!s.endereco)return;
+    const c=geoCached(s.endereco);
+    if(c){s.coords=c;s.geo=true;}
+    else if(c===undefined)(pending[geoKey(s.endereco)]||(pending[geoKey(s.endereco)]={addr:s.endereco,list:[]})).list.push(s);
+  });
+  renderMap(filtered);
+  const todo=Object.values(pending);
+  if(!todo.length||geoRunning)return;
+  geoRunning=true;
   const el=document.getElementById('geocode-status');
-  if(el){el.style.display='';el.textContent=`🌍 Geocodificando ${toGeo.length} endereço(s) sem coordenadas…`;}
-  let done=0;
-  for(const s of toGeo){
-    s.coords=await geocodeOne(s.endereco);
-    done++;
-    if(el)el.textContent=`🌍 Geocodificando endereços… ${done}/${toGeo.length}`;
-    renderMap(filtered);
-  }
-  if(el){el.textContent=`✅ ${done} endereço(s) geocodificados — salvos em cache local`;setTimeout(()=>{el.style.display='none';},4000);}
+  if(el){el.style.display='';el.textContent=`🌍 Localizando ${todo.length} endereço(s) sem coordenadas…`;}
+  let done=0,found=0;
+  try{
+    for(const p of todo){
+      const coords=await geocodeOne(p.addr);
+      if(coords){found++;p.list.forEach(s=>{s.coords=coords;s.geo=true;});}
+      done++;
+      if(el)el.textContent=`🌍 Localizando endereços… ${done}/${todo.length}`;
+      if(coords&&(found%5===0||done===todo.length))renderMap(filtered);
+    }
+  }finally{geoRunning=false;}
+  // Se a planilha foi recarregada durante a busca, aplica o cache aos registros novos
+  DATA.services.forEach(s=>{if(!s.coords&&s.endereco){const c=geoCached(s.endereco);if(c){s.coords=c;s.geo=true;}}});
+  renderMap(filtered,true);
+  if(el){el.textContent=`✅ ${found} de ${done} endereço(s) localizados — salvos em cache local`;setTimeout(()=>{el.style.display='none';},5000);}
 }
 
 // ═══════════ MAP ═══════════
 function initMap(svc){
   lMap=L.map('map',{zoomControl:true}).setView([-19.625,-43.22],13);
   tileLayer=L.tileLayer(isDark?'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png':'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{attribution:'© OSM © CARTO',subdomains:'abcd',maxZoom:19}).addTo(lMap);
-  markersLg=L.layerGroup().addTo(lMap);renderMap(svc);
+  markersLg=L.layerGroup().addTo(lMap);renderMap(svc,true);
+  window.addEventListener('resize',()=>lMap.invalidateSize());
 }
-function renderMap(svc){
+// Serviços no mesmo ponto viram um único marcador com contador (antes ficavam empilhados e só o de cima era clicável)
+function renderMap(svc,fit){
   if(!lMap)return;markersLg.clearLayers();if(heatLg){lMap.removeLayer(heatLg);heatLg=null;}
   const pts=svc.filter(s=>s.coords);
-  if(mapMode==='heat'){if(window.L.heatLayer)heatLg=L.heatLayer(pts.map(s=>[s.coords.lat,s.coords.lng,1]),{radius:28,blur:22,gradient:{'0':'#facc15','0.5':'#f97316','1':'#ef4444'}}).addTo(lMap);}
-  else pts.forEach(s=>{const c='#34d399';L.circleMarker([s.coords.lat,s.coords.lng],{radius:7,fillColor:c,color:'#000',weight:1,opacity:.6,fillOpacity:.9}).bindPopup(`<div style="font-size:13px;font-weight:600;margin-bottom:4px;color:#dde8f5">${s.endereco||'Endereço não informado'}</div><div style="font-size:11px;color:#445f7a;margin-bottom:8px">${fmt(s.date)}</div><div style="font-size:12px;color:#7ea4c8;margin-bottom:8px">${s.tipo||'-'}</div><span style="padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;background:${c}22;color:${c};border:1px solid ${c}44">${s.status}</span>`).addTo(markersLg);});
+  const cEl=document.getElementById('map-count');
+  if(cEl)cEl.textContent=svc.length?`${pts.length} de ${svc.length} serviço(s) no mapa`+(svc.length>pts.length?` · ${svc.length-pts.length} sem localização`:''):'';
+  const groups={};
+  pts.forEach(s=>{const k=`${s.coords.lat.toFixed(5)},${s.coords.lng.toFixed(5)}`;(groups[k]||(groups[k]=[])).push(s);});
+  if(mapMode==='heat'){
+    if(window.L.heatLayer){
+      const max=Math.max(1,...Object.values(groups).map(g=>g.length));
+      heatLg=L.heatLayer(Object.values(groups).map(g=>[g[0].coords.lat,g[0].coords.lng,g.length/max]),{radius:28,blur:22,minOpacity:.35,max:1,gradient:{'0.2':'#facc15','0.6':'#f97316','1':'#ef4444'}}).addTo(lMap);
+    }
+  }else Object.values(groups).forEach(g=>{
+    g.sort((a,b)=>b.date-a.date);
+    const ll=[g[0].coords.lat,g[0].coords.lng];
+    const items=g.slice(0,20).map(s=>`<div class="pop-item"><div class="pop-date">${fmt(s.date)}${s.geo?' · local aproximado':''}</div><div class="pop-tipo">${esc(s.tipo||'-')}</div></div>`).join('');
+    const more=g.length>20?`<div class="pop-date" style="padding-top:6px">+ ${g.length-20} serviço(s)</div>`:'';
+    const html=`<div class="pop-addr">${esc(g[0].endereco||'Endereço não informado')}</div>${g.length>1?`<div class="pop-count">${g.length} serviços neste local</div>`:''}${items}${more}`;
+    const size=Math.min(40,20+Math.log2(g.length)*5);
+    const mk=g.length>1
+      ?L.marker(ll,{icon:L.divIcon({className:'',html:`<div class="map-cluster" style="width:${size}px;height:${size}px">${g.length}</div>`,iconSize:[size,size]})})
+      :L.circleMarker(ll,{radius:7,fillColor:'#34d399',color:'#000',weight:1,opacity:.6,fillOpacity:.9});
+    mk.bindPopup(html,{maxWidth:280}).addTo(markersLg);
+  });
+  if(fit&&pts.length){
+    const b=L.latLngBounds(pts.map(s=>[s.coords.lat,s.coords.lng]));
+    lMap.fitBounds(b,{padding:[30,30],maxZoom:16});
+  }
 }
 
 // ═══════════ SERVIÇOS TABLE ═══════════
 function renderTable(svc){
-  const rows=applySearch(svc),total=rows.length,pages=Math.ceil(total/PER)||1;
+  const rows=[...svc].sort((a,b)=>b.date-a.date),total=rows.length,pages=Math.ceil(total/PER)||1;
   if(page>pages)page=pages;
   const slice=rows.slice((page-1)*PER,page*PER);
-  document.getElementById('t-body').innerHTML=slice.map(s=>`<tr><td>${fmt(s.date)}</td><td style="max-width:220px">${s.endereco||'-'}</td><td style="max-width:260px;color:var(--t1)">${s.tipo||'-'}</td><td><span class="badge badge-green">Executado</span></td><td><span class="badge ${s.source==='formulario'?'badge-blue':'badge-amber'}">${s.source==='formulario'?'Formulário':'Planilha'}</span></td><td style="max-width:200px;color:var(--t3)">${s.obs||'-'}</td></tr>`).join('');
+  document.getElementById('t-body').innerHTML=slice.length?slice.map(s=>`<tr><td>${fmt(s.date)}</td><td style="max-width:220px">${esc(s.endereco||'-')}</td><td style="max-width:260px;color:var(--t1)">${esc(s.tipo||'-')}</td><td><span class="badge ${s.source==='formulario'?'badge-blue':'badge-amber'}">${s.source==='formulario'?'Formulário':'Planilha'}</span></td><td style="max-width:200px;color:var(--t3);white-space:pre-line">${esc(s.obs||'-')}</td></tr>`).join(''):`<tr><td colspan="5" style="text-align:center;color:var(--t3);padding:24px">Nenhum serviço encontrado com os filtros atuais</td></tr>`;
   const s0=(page-1)*PER+1;
   document.getElementById('pg-info').textContent=`${total?s0:0}–${Math.min(page*PER,total)} de ${total}`;
   document.getElementById('pg-prev').disabled=page<=1;document.getElementById('pg-next').disabled=page>=pages;
@@ -704,7 +872,7 @@ function calcCusto(mats){
   document.getElementById('custo-itens').textContent=`${itens} tipos`;
   const fonteEl=document.getElementById('custo-fonte');
   if(fonteEl){const at=PRICES_META.atualizado?` · atualizado em ${PRICES_META.atualizado}`:'';fonteEl.textContent=`Fonte: ${PRICES_META.fonte}${at}`;}
-  document.getElementById('custo-body').innerHTML=rows.map(r=>`<tr><td>${r.mat}</td><td>${r.qtd.toFixed(1)}</td><td>${fmtBRL(r.price)}/${r.un||'un'}</td><td>${fmtBRL(r.cost)}</td></tr>`).join('');
+  document.getElementById('custo-body').innerHTML=rows.map(r=>`<tr><td>${esc(r.mat)}</td><td>${r.qtd.toLocaleString('pt-BR',{maximumFractionDigits:2})}</td><td>${fmtBRL(r.price)}/${esc(r.un||'un')}</td><td>${fmtBRL(r.cost)}</td></tr>`).join('');
 }
 
 // ═══════════ KPIs MATERIAIS ═══════════
@@ -768,8 +936,8 @@ function renderPriceEditor(){
     :`<p style="font-size:11px;color:var(--t3);margin-bottom:12px">ℹ️ Usando valores padrão. Para atualizar permanentemente, edite a aba <strong>PREÇOS</strong> na planilha Google Sheets.</p>`;
   grid.innerHTML=src+Object.entries(UNIT_PRICES).map(([mat,price])=>`
     <div class="price-row">
-      <span class="price-name">${mat}</span>
-      <input class="price-input" type="number" min="0" step="0.5" value="${price}" data-mat="${mat}">
+      <span class="price-name">${esc(mat)}</span>
+      <input class="price-input" type="number" min="0" step="0.5" value="${price}" data-mat="${esc(mat)}">
       <span class="price-unit">R$/un</span>
     </div>`).join('');
   grid.querySelectorAll('.price-input').forEach(inp=>{
@@ -787,7 +955,7 @@ function renderMatTable(mats){
   const slice=rows.slice((mPage-1)*PER,mPage*PER);
   document.getElementById('mt-body').innerHTML=slice.map(m=>{
     const cb=m.colab===5?'badge-blue':m.colab===4?'badge-amber':'badge-green';
-    return`<tr><td>${fmt(m.date)}</td><td style="max-width:200px;color:var(--t1)">${m.local||'-'}</td><td style="max-width:220px">${m.tipo||'-'}</td><td style="color:var(--t1);font-weight:500">${m.material||'-'}</td><td style="text-align:right;color:var(--accent-l);font-weight:600;white-space:nowrap">${m.rawQtd||'-'}</td><td style="color:var(--t3)">${m.un||'-'}</td><td style="text-align:center"><span class="badge ${cb}">${m.colab||'-'} col.</span></td><td style="max-width:220px;color:var(--t3);font-size:11px">${m.obs||'-'}</td></tr>`;
+    return`<tr><td>${fmt(m.date)}</td><td style="max-width:200px;color:var(--t1)">${esc(m.local||'-')}</td><td style="max-width:220px">${esc(m.tipo||'-')}</td><td style="color:var(--t1);font-weight:500">${esc(m.material||'-')}</td><td style="text-align:right;color:var(--accent-l);font-weight:600;white-space:nowrap">${esc(m.rawQtd||'-')}</td><td style="color:var(--t3)">${esc(m.un||'-')}</td><td style="text-align:center"><span class="badge ${cb}">${m.colab||'-'} col.</span></td><td style="max-width:220px;color:var(--t3);font-size:11px;white-space:pre-line">${esc(m.obs||'-')}</td></tr>`;
   }).join('');
   const s0=(mPage-1)*PER+1;
   document.getElementById('mpg-info').textContent=`${total?s0:0}–${Math.min(mPage*PER,total)} de ${total}`;
@@ -795,10 +963,11 @@ function renderMatTable(mats){
 }
 
 // ═══════════ UPDATE ═══════════
-function update(){
-  filtered=applyPeriodSvc(DATA.services);
+// Redesenha a aba Serviços. fit=true reenquadra o mapa nos pontos filtrados.
+function update(fit=true){
+  filtered=applyFilters(applyPeriodSvc(DATA.services));
   updateKPIs(filtered);mkDaily(filtered);mkTypes(filtered);mkWeekly(filtered);mkMonthly(filtered);mkRanking(filtered);
-  renderMap(filtered);page=1;renderTable(filtered);
+  renderMap(filtered,fit);page=1;renderTable(filtered);
 }
 function updateMat(){
   filteredMat=applyMatPeriodFull();
@@ -865,12 +1034,11 @@ function updatePeriodPillLabels(){
 
 async function refreshDashboard(isManual=false){
   const btn=document.getElementById('btn-refresh');
-  if(isManual&&btn){btn.textContent='⏳…';btn.disabled=true;}
+  if(isManual&&btn){btn.innerHTML='⏳ <span class="lbl">Atualizando…</span>';btn.disabled=true;}
   try{
     DATA=await loadData();
-    filtered=applyPeriodSvc(DATA.services);
-    updateKPIs(filtered);mkDaily(filtered);mkTypes(filtered);mkWeekly(filtered);mkMonthly(filtered);mkRanking(filtered);
-    renderMap(filtered);page=1;renderTable(filtered);
+    fillServiceFilters();
+    update(false);
     geocodeServices(DATA.services);
     if(matInited){
       filteredMat=applyMatPeriodFull();
@@ -879,7 +1047,7 @@ async function refreshDashboard(isManual=false){
     }
     setLastUpdated();
   }catch(e){console.error('Erro ao atualizar:',e);}
-  finally{if(isManual&&btn){btn.textContent='🔄 Atualizar';btn.disabled=false;}}
+  finally{if(isManual&&btn){btn.innerHTML='🔄 <span class="lbl">Atualizar</span>';btn.disabled=false;}}
 }
 
 function scheduleRefresh(){
@@ -894,9 +1062,8 @@ async function init(){
     DATA=await loadData();
     document.getElementById('loading').style.display='none';
     document.getElementById('app').style.display='block';
-    filtered=DATA.services;
-    updateKPIs(filtered);mkDaily(filtered);mkTypes(filtered);mkWeekly(filtered);mkMonthly(filtered);mkRanking(filtered);
-    page=1;renderTable(filtered);
+    fillServiceFilters();
+    update(false);
     setTheme(isDark,false);
     updatePeriodPillLabels();
     setLastUpdated();
@@ -905,13 +1072,16 @@ async function init(){
     document.getElementById('theme-toggle').addEventListener('click',()=>setTheme(!isDark,true));
     setTimeout(()=>{initMap(filtered);lMap.invalidateSize();geocodeServices(DATA.services);},150);
 
-    document.querySelectorAll('.tab-btn').forEach(btn=>{btn.addEventListener('click',()=>{const t=btn.dataset.tab;document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');document.getElementById('page-servicos').style.display=t==='servicos'?'':'none';document.getElementById('page-materiais').style.display=t==='materiais'?'':'none';if(t==='materiais')initMatPage();});});
+    document.querySelectorAll('.tab-btn').forEach(btn=>{btn.addEventListener('click',()=>{const t=btn.dataset.tab;document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');document.getElementById('page-servicos').style.display=t==='servicos'?'':'none';document.getElementById('page-materiais').style.display=t==='materiais'?'':'none';if(t==='materiais')initMatPage();else if(lMap)setTimeout(()=>lMap.invalidateSize(),50);});});
 
     document.querySelectorAll('.pill[data-sp]').forEach(btn=>{btn.addEventListener('click',()=>{document.querySelectorAll('.pill[data-sp]').forEach(b=>b.classList.remove('active'));btn.classList.add('active');period=btn.dataset.sp;svcDateFrom=null;svcDateTo=null;document.getElementById('s-from').value='';document.getElementById('s-to').value='';document.getElementById('s-clear').style.display='none';update();});});
     document.getElementById('s-apply').addEventListener('click',()=>{const f=document.getElementById('s-from').value,t=document.getElementById('s-to').value;svcDateFrom=f?parseISO(f):null;svcDateTo=t?parseISO(t):null;if(svcDateFrom||svcDateTo){document.querySelectorAll('.pill[data-sp]').forEach(b=>b.classList.remove('active'));document.getElementById('s-clear').style.display='';}update();});
     document.getElementById('s-clear').addEventListener('click',()=>{svcDateFrom=null;svcDateTo=null;document.getElementById('s-from').value='';document.getElementById('s-to').value='';document.getElementById('s-clear').style.display='none';period='all';document.querySelectorAll('.pill[data-sp]').forEach((b,i)=>b.classList.toggle('active',i===0));update();});
     ['s-from','s-to'].forEach(id=>document.getElementById(id).addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('s-apply').click();}));
-    ['q-search','q-status','q-source'].forEach(id=>{document.getElementById(id).addEventListener('input',()=>{page=1;renderTable(filtered);});document.getElementById(id).addEventListener('change',()=>{page=1;renderTable(filtered);});});
+    let searchTimer=null;
+    document.getElementById('q-search').addEventListener('input',()=>{clearTimeout(searchTimer);searchTimer=setTimeout(update,250);});
+    ['f-tipo','f-rua','q-source'].forEach(id=>document.getElementById(id).addEventListener('change',()=>update()));
+    document.getElementById('f-clear').addEventListener('click',()=>{['q-search','f-tipo','f-rua','q-source'].forEach(id=>{document.getElementById(id).value='';});update();});
     document.getElementById('pg-prev').addEventListener('click',()=>{page--;renderTable(filtered);});
     document.getElementById('pg-next').addEventListener('click',()=>{page++;renderTable(filtered);});
     document.getElementById('btn-markers').addEventListener('click',()=>{mapMode='markers';document.getElementById('btn-markers').classList.add('active');document.getElementById('btn-heat').classList.remove('active');renderMap(filtered);});
