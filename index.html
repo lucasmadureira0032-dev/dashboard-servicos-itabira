@@ -1154,7 +1154,7 @@ function origemLocal(s){
   switch(s.precisao){
     case 'gps':return'Coordenada informada na ficha';
     case 'numero':return`Pelo endereço: nº ${l.numero} da ${tituloIBGE(l.rua)}, ${tituloIBGE(l.bairro)}${l.exato?'':' (posição estimada entre números vizinhos)'}`;
-    case 'rua':return`Pelo endereço: ${tituloIBGE(l.rua)}, ${tituloIBGE(l.bairro)} (meio da rua, número não encontrado)`;
+    case 'rua':return`Pelo endereço: ${tituloIBGE(l.rua)}, ${tituloIBGE(l.bairro)} (${l.motivo||(l.numero!=null?'meio da rua, número não encontrado':'meio da rua, a ficha não tem número')})`;
     case 'bairro':return`Pelo endereço: centro do bairro ${tituloIBGE(l.bairro)}${l.motivo?` (${l.motivo.toLowerCase()})`:''}`;
     case 'osm':return'Lugar encontrado no OpenStreetMap (aproximado)';
     default:return'';
