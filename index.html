@@ -1148,14 +1148,19 @@ function acentos(){
   return ACENTOS;
 }
 const tituloIBGE=t=>{const a=acentos();return String(t||'').split(' ').map((w,i)=>a[w]||(i>0&&/^(D[AEO]S?|E)$/.test(w)?w.toLowerCase():w.charAt(0)+w.slice(1).toLowerCase())).join(' ');};
+// Devolve os acentos a nomes vindos do cadastro dentro de uma frase ("Fenix" → "Fênix")
+function comAcentos(t){
+  const a=acentos();
+  return String(t||'').replace(/[A-Za-z]+/g,w=>{const v=a[w.toUpperCase()];return !v?w:w===w.toLowerCase()?v.toLowerCase():v;});
+}
 // De onde veio o ponto, em uma frase para o popup e a exportação
 function origemLocal(s){
   const l=s.loc||{};
   switch(s.precisao){
     case 'gps':return'Coordenada informada na ficha';
     case 'numero':return`Pelo endereço: nº ${l.numero} da ${tituloIBGE(l.rua)}, ${tituloIBGE(l.bairro)}${l.exato?'':' (posição estimada entre números vizinhos)'}`;
-    case 'rua':return`Pelo endereço: ${tituloIBGE(l.rua)}, ${tituloIBGE(l.bairro)} (${l.motivo||(l.numero!=null?'meio da rua, número não encontrado':'meio da rua, a ficha não tem número')})`;
-    case 'bairro':return`Pelo endereço: centro do bairro ${tituloIBGE(l.bairro)}${l.motivo?` (${l.motivo.toLowerCase()})`:''}`;
+    case 'rua':return`Pelo endereço: ${tituloIBGE(l.rua)}, ${tituloIBGE(l.bairro)} (${comAcentos(l.motivo)||(l.numero!=null?'meio da rua, número não encontrado':'meio da rua, a ficha não tem número')})`;
+    case 'bairro':return`Pelo endereço: centro do bairro ${tituloIBGE(l.bairro)}${l.motivo?` (${comAcentos(l.motivo)})`:''}`;
     case 'osm':return'Lugar encontrado no OpenStreetMap (aproximado)';
     default:return'';
   }
