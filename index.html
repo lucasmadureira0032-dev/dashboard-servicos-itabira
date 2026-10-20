@@ -14,6 +14,7 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"/>
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js"></script>
+<script src="localizador.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
@@ -177,6 +178,14 @@ button.leg-item.active{border-color:var(--accent);color:var(--t1);}
 #geocode-status{font-size:11px;color:var(--t3);padding:6px 2px;display:flex;align-items:center;gap:6px;}
 .mk-dot{width:14px;height:14px;border-radius:50%;border:2px solid var(--s1);box-shadow:0 1px 3px rgba(0,0,0,.4);}
 [data-theme="light"] .mk-dot{border-color:#fff;}
+.mk-dot.aprox{background:var(--s1)!important;border-width:3px;border-style:solid;}
+.mk-dot.bairro{background:transparent!important;border-width:2px;border-style:dashed;width:18px;height:18px;box-shadow:none;}
+.mk-dot.conferir{box-shadow:0 0 0 3px var(--down);}
+.pop-origem{font-size:11px;color:var(--t3);margin-top:6px;display:flex;gap:5px;align-items:flex-start;}
+.pop-warn{font-size:11px;color:var(--down);margin-top:6px;font-weight:500;}
+.prec-legend{display:flex;gap:12px;flex-wrap:wrap;font-size:11px;color:var(--t3);margin-top:8px;align-items:center;}
+.prec-legend span{display:inline-flex;align-items:center;gap:5px;}
+.prec-legend i{display:inline-block;width:11px;height:11px;border-radius:50%;border:2px solid var(--t3);}
 .mk-cluster{display:flex;align-items:center;justify-content:center;border-radius:50%;background:var(--s1);border:2px solid var(--accent);color:var(--t1);font-weight:700;font-size:12px;box-shadow:0 2px 8px rgba(0,0,0,.35);font-family:var(--font);}
 .leaflet-popup-content-wrapper{background:var(--s1);color:var(--t1);border:1px solid var(--border);border-radius:10px;box-shadow:0 8px 32px rgba(0,0,0,.45);}
 .leaflet-popup-tip{background:var(--s1);}
@@ -189,7 +198,6 @@ button.leg-item.active{border-color:var(--accent);color:var(--t1);}
 .pop-date{font-size:11px;color:var(--t3);margin-bottom:6px;}
 .pop-tipo{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--t2);}
 .pop-obs{font-size:11px;color:var(--t3);margin-top:6px;white-space:pre-line;}
-.pop-approx{font-size:10px;color:var(--t3);margin-top:6px;font-style:italic;}
 
 /* TABLE */
 .table-panel{background:var(--s1);border:1px solid var(--border);border-radius:12px;padding:18px 20px;}
@@ -367,6 +375,13 @@ td.map-cell.none{opacity:.3;}
           <div class="map-foot">
             <div class="map-legend" id="map-legend"></div>
             <span id="map-count"></span>
+          </div>
+          <div class="prec-legend">
+            <span><i style="background:var(--t3)"></i>Ponto exato (GPS da ficha ou número no cadastro do IBGE)</span>
+            <span><i style="background:transparent"></i>Meio da rua</span>
+            <span><i style="background:transparent;border-style:dashed"></i>Centro do bairro</span>
+            <span><i style="background:var(--t3);box-shadow:0 0 0 2px var(--down)"></i>Coordenada da ficha longe do endereço</span>
+            <span>Para corrigir um local, clique com o botão direito no mapa e cole a coordenada na coluna "5. Coordenadas geográficas" da planilha.</span>
           </div>
         </div>
         <div class="panel rank-panel"><div class="panel-head"><span class="panel-title">Top 10 endereços</span><span class="panel-sub">Clique para filtrar</span></div><div class="chart-wrap"><canvas id="c-ranking" role="img" aria-label="Endereços com mais serviços"></canvas></div></div>
@@ -811,7 +826,7 @@ async function loadData(){
 
   // RESPOSTAS: única fonte de serviços
   // Entradas sem carimbo = vieram da planilha antiga; com carimbo = formulário
-  // Quando não há coordenadas, o geocodeServices() usa o endereço automaticamente
+  // Quando não há coordenadas, o localizarServicos() usa o endereço automaticamente
   csvToObjects(csvResp).forEach(r=>{
     const d=parseDMY(col(r,'1. Data do serviço'));if(!d)return;
     const coords=parseCoords(col(r,'5. Coordenadas geográficas','Coordenadas geográficas','Column 11'));
@@ -819,7 +834,7 @@ async function loadData(){
     const source=col(r,'Carimbo de data/hora')?'formulario':'planilha';
     const tipo=col(r,'2. Tipo de serviço')||'Serviço de campo';
     const cats=[...new Set(tipo.split(',').map(normType).filter(Boolean))];
-    services.push({date:d,coords,endereco,rua:extractStreet(endereco),tipo,cats,obs:col(r,'8. Observações'),source});
+    services.push({date:d,coords,precisao:coords?'gps':null,endereco,rua:extractStreet(endereco),tipo,cats,obs:col(r,'8. Observações'),source});
   });
 
   const matRows=csvToObjects(csvMat);
@@ -1004,48 +1019,81 @@ function mkRanking(svc){
   hBar('c-ranking',sorted,{selected:document.getElementById('f-rua').value,onPick:k=>setFilter('f-rua',k)});
 }
 
-// ═══════════ GEOCODING ═══════════
-// Cache: endereço → {lat,lng} quando achado, ou {miss:timestamp} quando não achado.
-// Endereços não encontrados são tentados de novo depois de GEO_RETRY_MS.
-const GEO_CACHE_KEY='itabira-geocache-v2';
+// ═══════════ LOCALIZAÇÃO ═══════════
+// Ordem de prioridade:
+// 1) coordenada informada na ficha (GPS);
+// 2) endereço no cadastro de endereços do IBGE (localizador.js + dados/enderecos-itabira.json, sem internet),
+//    que usa o bairro para escolher entre ruas de mesmo nome e diz se achou o número, a rua ou só o bairro;
+// 3) OpenStreetMap só para nomes de lugar que o cadastro não tem ("Rodoviária"), aceitando apenas pontos de interesse.
+let LOC=null; // localizador pronto, ou null se o cadastro não carregou
+const locPronto=(async()=>{
+  try{
+    if(!window.LocalizadorItabira)return;
+    const r=await fetch('dados/enderecos-itabira.json');
+    if(r.ok)LOC=LocalizadorItabira.criar(await r.json());
+  }catch(e){console.warn('Cadastro de endereços indisponível:',e);}
+})();
+const DIST_CONFERIR=1000; // coordenada da ficha a mais de 1 km do endereço: vale conferir
+
+function aplicarLocalizador(services){
+  if(!LOC)return;
+  services.forEach(s=>{
+    if(!s.endereco||s.loc)return;
+    const r=LOC.localizar(s.endereco);
+    s.loc=r;
+    if(s.coords){
+      // Coordenada da ficha: só confere se bate com o endereço achado no número ou na rua
+      if(r.ll&&(r.precisao==='numero'||r.precisao==='rua')){
+        const d=LOC.metros([s.coords.lat,s.coords.lng],r.ll);
+        if(d>DIST_CONFERIR)s.conferir=d;
+      }
+      return;
+    }
+    if(r.ll){s.coords={lat:r.ll[0],lng:r.ll[1]};s.precisao=r.precisao;}
+  });
+}
+
+// Cache do OpenStreetMap: texto → {lat,lng}, ou {miss:timestamp} quando não achou (tenta de novo depois de GEO_RETRY_MS).
+// v3: o cache antigo guardava chutes por nome de rua sem bairro e foi descartado.
+const GEO_CACHE_KEY='itabira-geocache-v3';
 const GEO_RETRY_MS=7*86400000;
 let geoCache={};
-try{geoCache=JSON.parse(localStorage.getItem(GEO_CACHE_KEY)||'{}');}catch(e){}
+try{localStorage.removeItem('itabira-geocache-v2');geoCache=JSON.parse(localStorage.getItem(GEO_CACHE_KEY)||'{}');}catch(e){}
 let geoRunning=false;
 const saveGeoCache=()=>{try{localStorage.setItem(GEO_CACHE_KEY,JSON.stringify(geoCache));}catch(e){}};
-const geoKey=addr=>addr.trim().toLowerCase().replace(/\s+/g,' ');
-function geoCached(addr){
-  const c=geoCache[geoKey(addr)];
+const geoKey=q=>q.trim().toLowerCase().replace(/\s+/g,' ');
+function geoCached(q){
+  const c=geoCache[geoKey(q)];
   if(!c)return undefined;
   if(c.miss)return Date.now()-c.miss<GEO_RETRY_MS?null:undefined;
   return c;
 }
-
-async function nominatim(q){
+// "Em frente ao Velório Santa Terezinha, 126" → "Velório Santa Terezinha"
+function textoLugar(endereco){
+  return endereco.split('→')[0].replace(/\([^)]*\)/g,' ')
+    .replace(/^\s*(em torno d[aoe]s?|ao lado d[aoe]s?|em frente (ao|à|a|da|do)|pr[oó]ximo (ao|à|a|da|do)|perto d[aoe]s?)\s+/i,'')
+    .split(/,|\s+[-–—]\s+/)[0].trim();
+}
+async function nominatimLugar(q){
   // Respeita o limite de 1 requisição/segundo do Nominatim
   await new Promise(r=>setTimeout(r,1100));
-  const url=`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=1&countrycodes=br&viewbox=-43.35,-19.55,-43.10,-19.75&bounded=1`;
+  const url=`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q+', Itabira, MG, Brasil')}&format=jsonv2&limit=5&countrycodes=br&viewbox=-43.35,-19.55,-43.10,-19.75&bounded=1`;
   const res=await fetch(url);
   if(!res.ok)throw new Error(`Nominatim ${res.status}`);
   const data=await res.json();
-  if(!data[0])return null;
-  const la=parseFloat(data[0].lat),ln=parseFloat(data[0].lon);
+  // Só pontos de interesse (rodoviária, escola, hospital...): bairro, cidade e rua genérica não valem
+  const d=data.find(x=>!['boundary','place','highway','landuse','natural','waterway'].includes(x.category));
+  if(!d)return null;
+  const la=parseFloat(d.lat),ln=parseFloat(d.lon);
   return inItabira(la,ln)?{lat:la,lng:ln}:null;
 }
-async function geocodeOne(addr){
-  const cached=geoCached(addr);
+async function geoLugar(q){
+  const cached=geoCached(q);
   if(cached!==undefined)return cached;
-  const base=addr.replace(/\b(itabira|mg|minas gerais|brasil)\b/gi,'').replace(/[,\s-]+$/,'').trim();
-  const parts=base.split(/[,;\-–]/).map(p=>p.trim()).filter(Boolean);
-  // Tenta do mais específico ao mais genérico: endereço completo, rua + bairro, só a rua
-  const tries=[...new Set([base,parts.length>2?`${parts[0]}, ${parts[parts.length-1]}`:'',parts[0]].filter(Boolean))];
   try{
-    for(const t of tries){
-      const coords=await nominatim(`${t}, Itabira, MG, Brasil`);
-      if(coords){geoCache[geoKey(addr)]=coords;saveGeoCache();return coords;}
-    }
-    geoCache[geoKey(addr)]={miss:Date.now()};saveGeoCache();
-    return null;
+    const c=await nominatimLugar(q);
+    geoCache[geoKey(q)]=c||{miss:Date.now()};saveGeoCache();
+    return c;
   }catch(e){return null;} // falha de rede: não grava no cache, tenta na próxima carga
 }
 
@@ -1055,35 +1103,72 @@ function geoStatus(html,hideAfter){
   el.innerHTML=html;el.style.display='';icons();
   clearTimeout(el._t);if(hideAfter)el._t=setTimeout(()=>{el.style.display='none';},hideAfter);
 }
-async function geocodeServices(services){
-  // Aplica o que já está em cache e agrupa os endereços que faltam (cada endereço é consultado uma vez só)
-  const pending={};
+// fit=true reenquadra o mapa (só na primeira carga, para não desfazer o zoom de quem está olhando)
+async function localizarServicos(services,fit=true){
+  await locPronto;
+  ACENTOS=null;
+  if(!LOC)geoStatus(`${ico('triangle-alert')}O cadastro de endereços não carregou. O mapa mostra só os serviços com coordenada na ficha.`);
+  aplicarLocalizador(services);
+  renderMap(filtered,fit);
+  renderTable(filtered);
+  // Nomes de lugar que o cadastro não tem: tenta o OpenStreetMap (cada texto é consultado uma vez só)
+  const pend={};
   services.forEach(s=>{
-    if(s.coords||!s.endereco)return;
-    const c=geoCached(s.endereco);
-    if(c){s.coords=c;s.geo=true;}
-    else if(c===undefined)(pending[geoKey(s.endereco)]||(pending[geoKey(s.endereco)]={addr:s.endereco,list:[]})).list.push(s);
+    if(s.coords||!s.loc||s.loc.erro!=='nao_encontrado')return;
+    const q=textoLugar(s.endereco);if(q.length<4)return;
+    const c=geoCached(q);
+    if(c){s.coords=c;s.precisao='osm';}
+    else if(c===undefined)(pend[geoKey(q)]||(pend[geoKey(q)]={q,list:[]})).list.push(s);
   });
-  renderMap(filtered);
-  const todo=Object.values(pending);
-  if(!todo.length||geoRunning)return;
+  const todo=Object.values(pend);
+  if(!todo.length||geoRunning){renderMap(filtered);return;}
   geoRunning=true;
-  geoStatus(`${ico('loader-circle')}Localizando ${pl(todo.length,'endereço sem coordenadas','endereços sem coordenadas')}…`);
+  geoStatus(`${ico('loader-circle')}Procurando ${pl(todo.length,'lugar','lugares')} no OpenStreetMap…`);
   let done=0,found=0;
   try{
     for(const p of todo){
-      const coords=await geocodeOne(p.addr);
-      if(coords){found++;p.list.forEach(s=>{s.coords=coords;s.geo=true;});}
+      const c=await geoLugar(p.q);
+      if(c){found++;p.list.forEach(s=>{s.coords=c;s.precisao='osm';});}
       done++;
-      geoStatus(`${ico('loader-circle')}Localizando endereços… ${done}/${todo.length}`);
-      if(coords&&(found%5===0||done===todo.length))renderMap(filtered);
+      geoStatus(`${ico('loader-circle')}Procurando lugares no OpenStreetMap… ${done}/${todo.length}`);
     }
   }finally{geoRunning=false;}
-  // Se a planilha foi recarregada durante a busca, aplica o cache aos registros novos
-  DATA.services.forEach(s=>{if(!s.coords&&s.endereco){const c=geoCached(s.endereco);if(c){s.coords=c;s.geo=true;}}});
-  renderMap(filtered,true);
-  geoStatus(`${ico('circle-check')}${found} de ${pl(done,'endereço localizado','endereços localizados')}. O resultado fica salvo neste navegador.`,5000);
+  renderMap(filtered);renderTable(filtered);
+  geoStatus(`${ico('circle-check')}${found} de ${pl(done,'lugar encontrado','lugares encontrados')} no OpenStreetMap.`,5000);
 }
+
+// Nome do cadastro do IBGE (maiúsculas, sem acento) em formato de título, com os acentos que a equipe usa nas fichas
+let ACENTOS=null;
+function acentos(){
+  if(ACENTOS)return ACENTOS;
+  ACENTOS={};
+  DATA.services.forEach(s=>String(s.endereco||'').split(/[^A-Za-zÀ-ÿ]+/).forEach(w=>{
+    if(w.length>2&&/[À-ÿ]/.test(w)){const k=w.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase();if(!ACENTOS[k])ACENTOS[k]=w.charAt(0).toUpperCase()+w.slice(1).toLowerCase();}
+  }));
+  return ACENTOS;
+}
+const tituloIBGE=t=>{const a=acentos();return String(t||'').split(' ').map((w,i)=>a[w]||(i>0&&/^(D[AEO]S?|E)$/.test(w)?w.toLowerCase():w.charAt(0)+w.slice(1).toLowerCase())).join(' ');};
+// De onde veio o ponto, em uma frase para o popup e a exportação
+function origemLocal(s){
+  const l=s.loc||{};
+  switch(s.precisao){
+    case 'gps':return'Coordenada informada na ficha';
+    case 'numero':return`Pelo endereço: nº ${l.numero} da ${tituloIBGE(l.rua)}, ${tituloIBGE(l.bairro)}${l.exato?'':' (posição estimada entre números vizinhos)'}`;
+    case 'rua':return`Pelo endereço: ${tituloIBGE(l.rua)}, ${tituloIBGE(l.bairro)} (meio da rua, número não encontrado)`;
+    case 'bairro':return`Pelo endereço: centro do bairro ${tituloIBGE(l.bairro)}${l.motivo?` (${l.motivo.toLowerCase()})`:''}`;
+    case 'osm':return'Lugar encontrado no OpenStreetMap (aproximado)';
+    default:return'';
+  }
+}
+// Por que o serviço ficou fora do mapa
+function motivoSemLocal(s){
+  const l=s.loc;
+  if(!s.endereco)return'Sem coordenada e sem endereço na ficha';
+  if(l&&l.erro==='ambiguo')return`Há ruas com esse nome em vários bairros (${pl(l.opcoes.length,'opção','opções')}). Informe o bairro na ficha.`;
+  if(l&&l.erro==='nao_encontrado')return'Endereço não encontrado no cadastro do IBGE nem no OpenStreetMap';
+  return'Sem localização';
+}
+const fmtDist=m=>m>=1000?`${(m/1000).toLocaleString('pt-BR',{maximumFractionDigits:1})} km`:`${Math.round(m)} m`;
 
 // ═══════════ MAP ═══════════
 function initMap(svc){
@@ -1094,6 +1179,18 @@ function initMap(svc){
   markersLg=L.markerClusterGroup?L.markerClusterGroup({showCoverageOnHover:false,maxClusterRadius:45,spiderfyOnMaxZoom:true,
     iconCreateFunction:cl=>{const n=cl.getChildCount(),sz=n<10?30:n<50?36:44;return L.divIcon({className:'',html:`<div class="mk-cluster" style="width:${sz}px;height:${sz}px">${n}</div>`,iconSize:[sz,sz]});}}):L.layerGroup();
   markersLg.addTo(lMap);renderMap(svc,true);
+  lMap.on('popupopen',()=>icons());
+  lMap.attributionControl.addAttribution('Endereços: <a href="https://github.com/ipeaGIT/padronizacao_cnefe" target="_blank" rel="noopener">IBGE, CNEFE 2022 (padronização IPEA)</a>');
+  // Botão direito (ou toque longo) no mapa: mostra a coordenada do ponto para corrigir uma ficha na planilha
+  lMap.on('contextmenu',e=>{
+    const c=`${e.latlng.lat.toFixed(6)}, ${e.latlng.lng.toFixed(6)}`;
+    const pop=L.popup({maxWidth:260}).setLatLng(e.latlng).setContent(`<div class="pop-addr">${c}</div><div class="pop-origem"><span>Cole na coluna "5. Coordenadas geográficas" da linha na aba RESPOSTAS para corrigir o local.</span></div><button class="btn-ghost" style="margin-top:8px" data-copiar="${c}">${ico('copy')}Copiar coordenada</button>`).openOn(lMap);
+    const btn=pop.getElement()&&pop.getElement().querySelector('[data-copiar]');
+    if(btn)btn.addEventListener('click',()=>{
+      const ok=()=>{btn.innerHTML=`${ico('check')}Copiada`;icons();};
+      if(navigator.clipboard)navigator.clipboard.writeText(c).then(ok,()=>{});else ok();
+    });
+  });
   window.addEventListener('resize',()=>lMap.invalidateSize());
 }
 // Cor do ponto: um dos 3 tipos mais frequentes ou "Outros"
@@ -1112,25 +1209,33 @@ function popupHTML(s){
   return`<div class="pop-addr">${esc(s.endereco||'Endereço não informado')}</div><div class="pop-date">${WEEKDAYS[s.date.getDay()]}, ${fmt(s.date)}</div>`
     +`<div class="pop-tipo"><span class="leg-dot" style="background:${catColor(k)}"></span>${esc(txt(s.tipo))}</div>`
     +(txt(s.obs)?`<div class="pop-obs">${esc(txt(s.obs).length>160?txt(s.obs).slice(0,158)+'…':txt(s.obs))}</div>`:'')
-    +(s.geo?`<div class="pop-approx">Local aproximado pelo endereço</div>`:'');
+    +(origemLocal(s)?`<div class="pop-origem">${ico(s.precisao==='gps'?'locate-fixed':'map-pin')}<span>${esc(origemLocal(s))}</span></div>`:'')
+    +(s.conferir&&s.loc?`<div class="pop-warn">A coordenada da ficha fica a ${fmtDist(s.conferir)} do endereço informado (${esc(tituloIBGE(s.loc.rua))}, ${esc(tituloIBGE(s.loc.bairro))}). Vale conferir.</div>`:'');
 }
 function renderMap(svc,fit){
   if(!lMap)return;markersLg.clearLayers();if(heatLg){lMap.removeLayer(heatLg);heatLg=null;}
   DATA.services.forEach(s=>{s._mk=null;});
   const pts=svc.filter(s=>s.coords);
   const cEl=document.getElementById('map-count');
-  if(cEl)cEl.textContent=svc.length?`${pts.length} de ${svc.length} no mapa`+(svc.length>pts.length?` · ${svc.length-pts.length} sem localização`:''):'';
+  if(cEl){
+    const aprox=pts.filter(s=>['rua','bairro','osm'].includes(s.precisao)).length,conf=pts.filter(s=>s.conferir).length;
+    cEl.textContent=svc.length?[`${pts.length} de ${svc.length} no mapa`,aprox?`${aprox} aproximados`:'',svc.length>pts.length?`${svc.length-pts.length} sem localização`:'',conf?`${conf} para conferir`:''].filter(Boolean).join(' · '):'';
+  }
   renderLegend(svc);
   if(mapMode==='heat'){
     if(window.L.heatLayer){
-      const groups={};pts.forEach(s=>{const k=`${s.coords.lat.toFixed(4)},${s.coords.lng.toFixed(4)}`;groups[k]=(groups[k]||{ll:[s.coords.lat,s.coords.lng],n:0});groups[k].n++;});
+      // Pontos no centro do bairro pesam menos, para não criar um falso foco no meio do bairro
+      const groups={};pts.forEach(s=>{const k=`${s.coords.lat.toFixed(4)},${s.coords.lng.toFixed(4)}`;groups[k]=(groups[k]||{ll:[s.coords.lat,s.coords.lng],n:0});groups[k].n+=['bairro','osm'].includes(s.precisao)?.3:1;});
       const g=Object.values(groups),max=Math.max(1,...g.map(x=>x.n));
       heatLg=L.heatLayer(g.map(x=>[...x.ll,x.n/max]),{radius:28,blur:22,minOpacity:.35,max:1,gradient:{'0.2':'#facc15','0.6':'#f97316','1':'#ef4444'}}).addTo(lMap);
     }
   }else{
     const c=T();
     const layers=pts.map(s=>{
-      const mk=L.marker([s.coords.lat,s.coords.lng],{icon:L.divIcon({className:'',html:`<div class="mk-dot" style="background:${catColor(catOf(s),c)}"></div>`,iconSize:[14,14]}),title:s.endereco||''});
+      const cor=catColor(catOf(s),c);
+      const cls=s.precisao==='rua'?' aprox':['bairro','osm'].includes(s.precisao)?' bairro':'';
+      const sz=cls===' bairro'?18:14;
+      const mk=L.marker([s.coords.lat,s.coords.lng],{icon:L.divIcon({className:'',html:`<div class="mk-dot${cls}${s.conferir?' conferir':''}" style="background:${cor}${cls?`;border-color:${cor}`:''}"></div>`,iconSize:[sz,sz]}),title:s.endereco||''});
       mk.bindPopup(popupHTML(s),{maxWidth:280});s._mk=mk;return mk;
     });
     if(markersLg.addLayers)markersLg.addLayers(layers);else layers.forEach(l=>markersLg.addLayer(l));
@@ -1142,7 +1247,7 @@ function renderMap(svc,fit){
 }
 // Centraliza o mapa num serviço da tabela e abre o popup dele
 function focusService(s){
-  if(!s.coords){geoStatus(`${ico('map-pin-off')}Este serviço não tem localização no mapa.`,4000);return;}
+  if(!s.coords){geoStatus(`${ico('map-pin-off')}${esc(motivoSemLocal(s))}`,6000);return;}
   if(mapMode!=='markers')document.getElementById('btn-markers').click();
   document.querySelector('.map-panel').scrollIntoView({behavior:'smooth',block:'center'});
   const mk=s._mk;if(!mk)return;
@@ -1156,14 +1261,14 @@ function renderTable(svc){
   const total=tableRows.length,pages=Math.ceil(total/PER)||1;
   if(page>pages)page=pages;
   const s0=(page-1)*PER,slice=tableRows.slice(s0,page*PER);
-  document.getElementById('t-body').innerHTML=slice.length?slice.map((s,i)=>`<tr class="clickable" data-i="${s0+i}" title="${s.coords?'Ver no mapa':'Sem localização no mapa'}"><td>${fmt(s.date)}</td><td style="max-width:220px;color:var(--t1)">${esc(txt(s.endereco))}</td><td style="max-width:260px">${esc(txt(s.tipo))}</td><td><span class="badge ${s.source==='formulario'?'badge-blue':'badge-amber'}">${s.source==='formulario'?'Formulário':'Planilha'}</span></td><td style="max-width:220px;color:var(--t3);white-space:pre-line">${esc(txt(s.obs))}</td><td class="map-cell${s.coords?'':' none'}">${ico(s.coords?'map-pin':'map-pin-off')}</td></tr>`).join(''):`<tr><td colspan="6" style="text-align:center;color:var(--t3);padding:28px">Nenhum serviço encontrado com os filtros atuais</td></tr>`;
+  document.getElementById('t-body').innerHTML=slice.length?slice.map((s,i)=>`<tr class="clickable" data-i="${s0+i}" title="${esc(s.coords?'Ver no mapa. '+origemLocal(s):motivoSemLocal(s))}"><td>${fmt(s.date)}</td><td style="max-width:220px;color:var(--t1)">${esc(txt(s.endereco))}</td><td style="max-width:260px">${esc(txt(s.tipo))}</td><td><span class="badge ${s.source==='formulario'?'badge-blue':'badge-amber'}">${s.source==='formulario'?'Formulário':'Planilha'}</span></td><td style="max-width:220px;color:var(--t3);white-space:pre-line">${esc(txt(s.obs))}</td><td class="map-cell${s.coords?'':' none'}">${ico(s.coords?'map-pin':'map-pin-off')}</td></tr>`).join(''):`<tr><td colspan="6" style="text-align:center;color:var(--t3);padding:28px">Nenhum serviço encontrado com os filtros atuais</td></tr>`;
   document.getElementById('pg-info').textContent=total?`${s0+1} a ${Math.min(page*PER,total)} de ${total}`:'Nenhum registro';
   document.getElementById('pg-prev').disabled=page<=1;document.getElementById('pg-next').disabled=page>=pages;
   icons();
 }
 function exportServices(){
-  downloadCSV(`servicos-itabira-${today_iso()}.csv`,['Data','Endereço','Tipo de serviço','Origem','Observações','Latitude','Longitude','Localização'],
-    [...filtered].sort((a,b)=>b.date-a.date).map(s=>[fmt(s.date),s.endereco,s.tipo,s.source==='formulario'?'Formulário':'Planilha',s.obs,s.coords?String(s.coords.lat).replace('.',','):'',s.coords?String(s.coords.lng).replace('.',','):'',!s.coords?'Sem localização':s.geo?'Aproximada (endereço)':'Coordenada informada']));
+  downloadCSV(`servicos-itabira-${today_iso()}.csv`,['Data','Endereço','Tipo de serviço','Origem','Observações','Latitude','Longitude','Localização','Conferir'],
+    [...filtered].sort((a,b)=>b.date-a.date).map(s=>[fmt(s.date),s.endereco,s.tipo,s.source==='formulario'?'Formulário':'Planilha',s.obs,s.coords?String(s.coords.lat).replace('.',','):'',s.coords?String(s.coords.lng).replace('.',','):'',s.coords?origemLocal(s):motivoSemLocal(s),s.conferir?`Coordenada a ${fmtDist(s.conferir)} do endereço`:'']));
 }
 
 // ═══════════ CUSTO ═══════════
@@ -1388,7 +1493,7 @@ async function refreshDashboard(isManual=false){
     DATA=await loadData();
     fillServiceFilters();
     update(false);
-    geocodeServices(DATA.services);
+    localizarServicos(DATA.services,false);
     if(matInited){updateMat();mkComparativo();}
     setLastUpdated();
   }catch(e){console.error('Erro ao atualizar:',e);}
@@ -1417,7 +1522,7 @@ async function init(){
     icons();
     document.getElementById('btn-refresh').addEventListener('click',()=>refreshDashboard(true));
     document.getElementById('theme-toggle').addEventListener('click',()=>setTheme(!isDark,true));
-    setTimeout(()=>{initMap(filtered);lMap.invalidateSize();geocodeServices(DATA.services);},150);
+    setTimeout(()=>{initMap(filtered);lMap.invalidateSize();localizarServicos(DATA.services);},150);
 
     document.querySelectorAll('.tab-btn').forEach(btn=>{btn.addEventListener('click',()=>{const t=btn.dataset.tab;document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');document.getElementById('page-servicos').style.display=t==='servicos'?'':'none';document.getElementById('page-materiais').style.display=t==='materiais'?'':'none';if(t==='materiais')initMatPage();else if(lMap)setTimeout(()=>lMap.invalidateSize(),50);});});
 
