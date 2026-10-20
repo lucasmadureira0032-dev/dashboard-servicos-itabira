@@ -1169,7 +1169,11 @@ function origemLocal(s){
 function motivoSemLocal(s){
   const l=s.loc;
   if(!s.endereco)return'Sem coordenada e sem endereço na ficha';
-  if(l&&l.erro==='ambiguo')return`Há ruas com esse nome em vários bairros (${pl(l.opcoes.length,'opção','opções')}). Informe o bairro na ficha.`;
+  if(l&&l.erro==='ambiguo'){
+    const b=l.entrada&&l.entrada.bairro;
+    return`Há ruas com esse nome em vários bairros (${pl(l.opcoes.length,'opção','opções')}). `+
+      (b?`O bairro "${b}" não aparece no cadastro do IBGE; para marcar no mapa, cole a coordenada na planilha.`:'Informe o bairro na ficha.');
+  }
   if(l&&l.erro==='nao_encontrado')return'Endereço não encontrado no cadastro do IBGE nem no OpenStreetMap';
   return'Sem localização';
 }
